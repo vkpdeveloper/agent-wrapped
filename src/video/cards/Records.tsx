@@ -34,7 +34,7 @@ export function Records({ w, field }: CardProps) {
       value: w.busiestDay.sessions,
       format: int,
       unit: plural(w.busiestDay.sessions, "session"),
-      detail: `${day(w.busiestDay.date)}, ${hours(w.busiestDay.hours)} hours`,
+      detail: `${day(w.busiestDay.date)}, ${hours(w.busiestDay.hours)} agent hours`,
     },
   ].filter((record) => record.value > 0 && !(record.label === "Longest streak" && record.value < 2));
 

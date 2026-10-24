@@ -70,6 +70,6 @@ test("skips child threads and maps native sessions to their thread", () => {
 
   const { sessions, native } = readDatabase(db);
   expect(sessions.map((s) => [s.id, s.cwd])).toEqual([["main", "/Users/me/.t3/worktrees/app/fix"]]);
-  expect(native.get("codex-1")).toEqual({ thread: "main", title: "Thread main" });
-  expect(native.get("claude-1")?.thread).toBe("main");
+  expect(native.get("codex-1")).toBe("main");
+  expect(native.get("claude-1")).toBe("main");
 });

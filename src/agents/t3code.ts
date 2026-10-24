@@ -10,14 +10,16 @@ import { cleanPrompt, count, diffLines, emptySummary, lineCount, span, toolKind 
 // turn items: typed prompts, shell commands with exit codes, file changes, tools.
 // The agent it drove usually also wrote its own session file. Those are richer
 // (tokens, models per turn), so `native` maps each native session id to its T3
-// thread and index.ts relabels those sessions as T3 Code; the threads read here
-// are only used when no native session survives (Claude Code deletes its history
-// after 30 days, and some agents T3 drives are not read at all).
+// thread and index.ts relabels those sessions as T3 Code, keeping T3's prompts:
+// T3 knows which messages the person typed and which an agent or automation
+// sent. A thread's own summary is used when no native session survives (Claude
+// Code deletes its history after 30 days, and some agents T3 drives are not read).
 
 export interface T3Code {
+  /** Every top-level thread, including ones with no typed prompt. */
   sessions: SessionSummary[];
-  /** Native session id (a Codex rollout, a Claude Code session, ...) -> the T3 thread that ran it. */
-  native: Map<string, { thread: string; title: string }>;
+  /** Native session id (a Codex rollout, a Claude Code session, ...) -> id of the T3 thread that ran it. */
+  native: Map<string, string>;
 }
 
 interface ThreadRow {
@@ -74,8 +76,7 @@ export function readDatabase(db: Database): T3Code {
     )
     .all();
 
-  const native = new Map<string, { thread: string; title: string }>();
-  const titles = new Map(threads.map((thread) => [thread.id, thread.title]));
+  const native = new Map<string, string>();
   const links = db
     .query<{ native: string | null; thread: string | null }, []>(
       `select json_extract(payload_json, '$.nativeThreadRef.nativeId') as native, thread_id as thread
@@ -87,7 +88,7 @@ export function readDatabase(db: Database): T3Code {
     )
     .all();
   for (const link of links) {
-    if (link.native && link.thread) native.set(link.native, { thread: link.thread, title: titles.get(link.thread) ?? "" });
+    if (link.native && link.thread) native.set(link.native, link.thread);
   }
 
   const items = Map.groupBy(
@@ -115,8 +116,7 @@ export function readDatabase(db: Database): T3Code {
   for (const thread of threads) {
     // Subagents an agent spawned and tasks delegated over T3's MCP tools are child work, not sessions.
     if (thread.source === "provider" || thread.source === "mcp") continue;
-    const session = summarize(thread, items.get(thread.id) ?? []);
-    if (session.prompts.length) sessions.push(session);
+    sessions.push(summarize(thread, items.get(thread.id) ?? []));
   }
   return { sessions, native };
 }
