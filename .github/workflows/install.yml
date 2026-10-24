@@ -1,0 +1,43 @@
+# Installs the latest release the way the skill does, through wrapped.sh and
+# wrapped.ps1, and renders a video with it on each OS. Runs after each release
+# and whenever the launchers change.
+name: Install
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  push:
+    branches: [main]
+    paths: ["skill/agent-wrapped/wrapped.*", ".github/workflows/install.yml"]
+  workflow_dispatch:
+
+jobs:
+  install:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15, macos-15-intel, ubuntu-24.04, ubuntu-24.04-arm, windows-2025]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: wrapped.sh
+        shell: bash
+        run: |
+          sh skill/agent-wrapped/wrapped.sh --version
+          sh skill/agent-wrapped/wrapped.sh agents
+          sh skill/agent-wrapped/wrapped.sh lines fixtures/wrapped.json --cut rage
+          sh skill/agent-wrapped/wrapped.sh render fixtures/wrapped.json --cut convo -o "$RUNNER_TEMP/sh.mp4"
+          test -s "$RUNNER_TEMP/sh.mp4"
+      # Codex and other agents on Windows run PowerShell, often with no sh. Both
+      # the built-in Windows PowerShell 5.1 and PowerShell 7, against a fresh install.
+      - name: wrapped.ps1
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Remove-Item -Recurse -Force "$HOME/.local/share/agent-wrapped/agent-wrapped.exe"
+          powershell -ExecutionPolicy Bypass -File skill/agent-wrapped/wrapped.ps1 --version
+          if ($LASTEXITCODE) { exit 1 }
+          pwsh -File skill/agent-wrapped/wrapped.ps1 render fixtures/wrapped.json --cut chat -o "$env:RUNNER_TEMP/ps.mp4"
+          if ($LASTEXITCODE -or -not (Test-Path "$env:RUNNER_TEMP/ps.mp4")) { exit 1 }

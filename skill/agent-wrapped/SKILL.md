@@ -11,6 +11,10 @@ the latest `agent-wrapped` release for this OS and CPU from GitHub into
 release at most once a day, so never install anything by hand. The first video on
 a machine also downloads Chrome Headless Shell, so allow a few minutes for it.
 
+On Windows, `wrapped.sh` works from Git Bash. From PowerShell with no `sh`, run
+`powershell -ExecutionPolicy Bypass -File <skill-dir>/wrapped.ps1` with the same
+arguments everywhere below; both share one install.
+
 Everything is read and rendered locally. Nothing is uploaded.
 
 ## 1. Read the history
@@ -45,7 +49,13 @@ counts once.
 
 Unless the user already said which one, offer the menu: for each format, what
 it looks like, with their own numbers from the JSON as the hook. Recommend the
-one whose numbers are most extreme, and let them pick one or several.
+one whose numbers are most extreme, then stop and wait for them to pick one or
+several. Never pick for them unless they told you to.
+
+When they named a format, or told you not to ask, make that one, and in the
+report list the other formats their numbers suit, a line each with its hook,
+so they can ask for more. Nothing is recounted: each extra format is its own
+jokes (step 5) and one render.
 
 `previews/<cut>.jpg` next to this file is a frame of each format. If you can
 show images, show the previews of the formats you offer.
@@ -181,8 +191,8 @@ on the same beat as the cuts, with sound effects on every hit.
 
 ## Report
 
-Give the video paths, the headline numbers (hours, sessions, the #1 agent), the
-persona, the lessons and the quotes you picked. Offer to add the lessons to
-their CLAUDE.md or AGENTS.md. Remind them that `full` shows project names
-(unless blurred), and every format can show lines they typed, so they should
-watch it before posting.
+Give the video paths, the other formats worth making (see step 2), the headline
+numbers (hours, sessions, the #1 agent), the persona, the lessons and the quotes
+you picked. Offer to add the lessons to their CLAUDE.md or AGENTS.md. Remind
+them that `full` shows project names (unless blurred), and every format can show
+lines they typed, so they should watch it before posting.
