@@ -1,5 +1,5 @@
 import { basename } from "node:path";
-import { redact } from "./redact.ts";
+import { redactDeep } from "./redact.ts";
 import { AGENT_NAMES, type AgentId, type AgentStat, type Moment, type Ranked, type SessionSummary, type Wrapped } from "./types.ts";
 
 const HOUR = 3_600_000;
@@ -95,7 +95,7 @@ export function wrap(all: SessionSummary[], options: { year: number; name: strin
       total: corrections.length,
       rate: prompts.length ? Math.round((corrections.length / prompts.length) * 1000) / 1000 : 0,
       phrases: tally(corrections.map(openingWords)).slice(0, 5),
-      samples: corrections.slice(-150).map((text) => sample(text, home)),
+      samples: samples(corrections.slice(-150), prompts, home),
     },
     lessons: [],
     persona: { title: "", line: "" },
@@ -281,9 +281,10 @@ function persona(wrapped: Wrapped, commands: string[]): Wrapped["persona"] {
 }
 
 /** Redacted, single-line and without attachment markers, which carry no meaning for the reader. */
-function sample(text: string, home: string): string {
-  const bare = text.replace(/\[(Attached image|Image)[^\]]*\]/g, "").replace(/\s+/g, " ").trim();
-  return clip(redact(bare, home), 200);
+/** Clipped, masked samples. Masked with every prompt, so a password given away in one masks it in all. */
+function samples(texts: string[], prompts: { text: string }[], home: string): string[] {
+  const bare = texts.map((text) => text.replace(/\[(Attached image|Image)[^\]]*\]/g, "").replace(/\s+/g, " ").trim());
+  return redactDeep({ bare, all: prompts.map((prompt) => prompt.text) }, home).bare.map((text) => clip(text, 200));
 }
 
 function moment(session: SessionSummary, home: string): Moment {
