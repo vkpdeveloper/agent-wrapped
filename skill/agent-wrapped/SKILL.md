@@ -180,7 +180,8 @@ Then check every line and rewrite each one that fails:
 3. It adds what the card does not already say: a sticker under "350 times"
    brings a new fact or the punch, not the 350 again.
 4. A stranger would laugh, or wince, without context.
-5. It is within its limit.
+5. No two lines lean on the same quote or fact: a video is 5 jokes, not one.
+6. It is within its limit.
 
 ## 6. Render
 
