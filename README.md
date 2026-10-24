@@ -20,8 +20,9 @@ updated. Works on macOS, Linux and Windows.
 
 ## What it reads
 
-T3 Code, Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build, whichever
-have history on your machine, ranked by how much you use them. Everything stays
+Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build, whichever have
+history on your machine, ranked by how much you use them. Threads run from T3
+Code count as the harness that ran them (and add Devin and Muse). Everything stays
 local: nothing is uploaded, and secrets in prompts are masked.
 
 Use more than one machine? Ask for "my agent wrapped across all my machines"

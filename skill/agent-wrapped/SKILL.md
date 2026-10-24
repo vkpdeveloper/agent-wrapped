@@ -1,6 +1,6 @@
 ---
 name: agent-wrapped
-description: Make a Spotify Wrapped-style video of the user's year with coding agents (T3 Code, Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build) from the session history on this machine or several, with stats, their agent persona, and the lessons hidden in how often they corrected the agent. Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, or stats about how they use coding agents.
+description: Make a Spotify Wrapped-style video of the user's year with coding agents (Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build, and the ones T3 Code runs) from the session history on this machine or several, with stats, their agent persona, and the lessons hidden in how often they corrected the agent. Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, or stats about how they use coding agents.
 ---
 
 # Agent Wrapped
@@ -24,8 +24,8 @@ and prints a one-line summary. Add `--year 2025` for another year and
 `--name "..."` if the user gives a name for the first card. The JSON holds
 prompt excerpts, so keep it in the temp directory, never in a project.
 
-Sessions run through T3 Code count as T3 Code, once, not again under the agent
-it drove.
+T3 Code is an app that runs these harnesses, not an agent: each T3 thread
+counts once, as the harness that ran it.
 
 ### Other machines
 

@@ -6,8 +6,8 @@ function database() {
   const db = new Database(":memory:");
   db.run(`create table orchestration_v2_projection_threads (thread_id text, project_id text, title text, payload_json text)`);
   db.run(`create table projection_projects (project_id text, workspace_root text)`);
-  db.run(`create table orchestration_v2_projection_provider_threads (thread_id text, payload_json text)`);
-  db.run(`create table provider_session_runtime (thread_id text, resume_cursor_json text)`);
+  db.run(`create table orchestration_v2_projection_provider_threads (thread_id text, last_run_ordinal integer, payload_json text)`);
+  db.run(`create table provider_session_runtime (thread_id text, provider_name text, resume_cursor_json text)`);
   db.run(`create table orchestration_v2_projection_turn_items (turn_item_id text, thread_id text, ordinal integer, type text, status text, payload_json text)`);
   db.run(`insert into projection_projects values ('p', '/Users/me/app')`);
   return db;
@@ -32,7 +32,7 @@ function item(db: Database, threadId: string, type: string, payload: Record<stri
 
 test("reads typed prompts, commands, edits and tools from T3 threads", () => {
   const db = database();
-  thread(db, "t1", { creationSource: "web", modelSelection: { model: "gpt-5.5" } });
+  thread(db, "t1", { creationSource: "web", modelSelection: { instanceId: "codex", model: "gpt-5.5" } });
   item(db, "t1", "user_message", { createdBy: "user", text: "fix the build" });
   item(db, "t1", "user_message", { createdBy: "system", text: "Scheduled run" });
   item(db, "t1", "command_execution", { input: "/bin/zsh -lc 'bun test'", exitCode: 1 });
@@ -45,7 +45,7 @@ test("reads typed prompts, commands, edits and tools from T3 threads", () => {
   item(db, "t1", "user_message", { createdBy: "user", text: "no, use bun" });
 
   const [session] = readDatabase(db).sessions;
-  expect(session?.agent).toBe("t3code");
+  expect(session?.agent).toBe("codex");
   expect(session?.cwd).toBe("/Users/me/app");
   expect(session?.prompts.map((p) => p.text)).toEqual(["fix the build", "no, use bun"]);
   expect(session?.commands).toEqual([
@@ -59,17 +59,24 @@ test("reads typed prompts, commands, edits and tools from T3 threads", () => {
   expect(session?.activeMs).toBe(9 * 60_000);
 });
 
-test("skips child threads and maps native sessions to their thread", () => {
+test("counts each thread as its harness, skips child threads, and maps native sessions to their thread", () => {
   const db = database();
   thread(db, "subagent", { creationSource: "provider" });
   thread(db, "delegated", { creationSource: "mcp" });
-  thread(db, "main", { creationSource: "web", worktreePath: "/Users/me/.t3/worktrees/app/fix" });
-  for (const id of ["subagent", "delegated", "main"]) item(db, id, "user_message", { createdBy: "user", text: "go" });
-  db.run(`insert into orchestration_v2_projection_provider_threads values ('main', '{"nativeThreadRef":{"nativeId":"codex-1"}}')`);
-  db.run(`insert into provider_session_runtime values ('main', '{"threadId":"main","resume":"claude-1"}')`);
+  thread(db, "main", { creationSource: "web", worktreePath: "/Users/me/.t3/worktrees/app/fix", modelSelection: { instanceId: "work" } });
+  thread(db, "resumed", { creationSource: "web" });
+  thread(db, "unknown", { creationSource: "web", modelSelection: { instanceId: "someharness" } });
+  for (const id of ["subagent", "delegated", "main", "resumed", "unknown"]) item(db, id, "user_message", { createdBy: "user", text: "go" });
+  db.run(`insert into orchestration_v2_projection_provider_threads values ('main', 1, '{"driver":"codex","nativeThreadRef":{"nativeId":"codex-1"}}')`);
+  db.run(`insert into orchestration_v2_projection_provider_threads values ('main', 2, '{"driver":"claudeAgent","nativeThreadRef":{"nativeId":"claude-2"}}')`);
+  db.run(`insert into provider_session_runtime values ('resumed', 'grok', '{"sessionId":"grok-1"}')`);
 
   const { sessions, native } = readDatabase(db);
-  expect(sessions.map((s) => [s.id, s.cwd])).toEqual([["main", "/Users/me/.t3/worktrees/app/fix"]]);
+  expect(sessions.map((s) => [s.id, s.agent, s.cwd])).toEqual([
+    ["main", "claude", "/Users/me/.t3/worktrees/app/fix"],
+    ["resumed", "grok", "/Users/me/app"],
+  ]);
   expect(native.get("codex-1")).toBe("main");
-  expect(native.get("claude-1")).toBe("main");
+  expect(native.get("claude-2")).toBe("main");
+  expect(native.get("grok-1")).toBe("resumed");
 });

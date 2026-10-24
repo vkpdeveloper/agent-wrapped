@@ -25,7 +25,8 @@ export const AGENT_COLORS: Record<AgentId, string> = {
   amp: "#ff3d6e",
   cursor: "#00b8c8",
   grok: "#8b5cff",
-  t3code: "#ff4fd8",
+  devin: "#b6f23a",
+  muse: "#ff4fd8",
 };
 
 export const PALETTES: Record<AgentId, Palette> = {
@@ -79,7 +80,14 @@ export const PALETTES: Record<AgentId, Palette> = {
     pop: { bg: "#ffffff", ink: "#0a0a0c", hi: "#6a3cf0" },
     pop2: { bg: "#3df2ff", ink: "#04121a", hi: "#0a0a0c" },
   },
-  t3code: {
+  devin: {
+    accent: { bg: "#b6f23a", ink: "#0f1404", hi: "#0a0d03" },
+    deep: { bg: "#0d1105", ink: "#f2fadf", hi: "#c3ff4a" },
+    pale: { bg: "#f2fadf", ink: "#0d1105", hi: "#5c8a00" },
+    pop: { bg: "#5b6cff", ink: "#ffffff", hi: "#e6ff9e" },
+    pop2: { bg: "#ff8a3d", ink: "#200c02", hi: "#0d1105" },
+  },
+  muse: {
     accent: { bg: "#ff4fd8", ink: "#1f0419", hi: "#fff0fb" },
     deep: { bg: "#14040f", ink: "#ffe9f8", hi: "#ff6fe0" },
     pale: { bg: "#ffe9f8", ink: "#14040f", hi: "#c4129d" },

@@ -2,21 +2,23 @@ import { Database } from "bun:sqlite";
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import type { SessionSummary } from "../types.ts";
+import type { AgentId, SessionSummary } from "../types.ts";
 import { cleanPrompt, count, diffLines, emptySummary, lineCount, span, toolKind } from "./core.ts";
 
-// T3 Code is an app that drives other agents (Codex, Claude, Grok Build, OpenCode
-// and more). It keeps every thread in ~/.t3/userdata/statev2.sqlite as normalized
-// turn items: typed prompts, shell commands with exit codes, file changes, tools.
-// The agent it drove usually also wrote its own session file. Those are richer
-// (tokens, models per turn), so `native` maps each native session id to its T3
-// thread and index.ts relabels those sessions as T3 Code, keeping T3's prompts:
-// T3 knows which messages the person typed and which an agent or automation
-// sent. A thread's own summary is used when no native session survives (Claude
-// Code deletes its history after 30 days, and some agents T3 drives are not read).
+// T3 Code is an app that drives harnesses (Codex, Claude Code, Grok Build,
+// OpenCode and more), so it is not counted as an agent itself: every thread
+// counts as the harness that ran it. T3 keeps each thread in
+// ~/.t3/userdata/statev2.sqlite as normalized turn items: typed prompts, shell
+// commands with exit codes, file changes, tools. The harness usually also wrote
+// its own session file. Those are richer (tokens, models per turn), so `native`
+// maps each native session id to its T3 thread and index.ts keeps the native
+// session with T3's prompts: T3 knows which messages the person typed and which
+// an agent or automation sent. A thread's own summary is used when no native
+// session survives (Claude Code deletes its history after 30 days, and some
+// harnesses T3 drives have no reader here).
 
 export interface T3Code {
-  /** Every top-level thread, including ones with no typed prompt. */
+  /** Every top-level thread of a known harness, including ones with no typed prompt. */
   sessions: SessionSummary[];
   /** Native session id (a Codex rollout, a Claude Code session, ...) -> id of the T3 thread that ran it. */
   native: Map<string, string>;
@@ -26,6 +28,7 @@ interface ThreadRow {
   id: string;
   title: string;
   source: string | null;
+  driver: string | null;
   cwd: string | null;
   model: string | null;
 }
@@ -52,6 +55,19 @@ const ITEM_KINDS: Record<string, string> = {
   todo_list: "todo",
 };
 
+/** T3's provider drivers -> the harness they run. */
+const DRIVERS: Record<string, AgentId> = {
+  claudeAgent: "claude",
+  codex: "codex",
+  opencode: "opencode",
+  pi: "pi",
+  amp: "amp",
+  cursor: "cursor",
+  grok: "grok",
+  devin: "devin",
+  muse: "muse",
+};
+
 export const DATABASE = join(homedir(), ".t3", "userdata", "statev2.sqlite");
 
 export async function read(path = DATABASE): Promise<T3Code> {
@@ -69,6 +85,12 @@ export function readDatabase(db: Database): T3Code {
     .query<ThreadRow, []>(
       `select t.thread_id as id, t.title,
          json_extract(t.payload_json, '$.creationSource') as source,
+         coalesce(
+           (select json_extract(payload_json, '$.driver') from orchestration_v2_projection_provider_threads
+             where thread_id = t.thread_id order by last_run_ordinal desc limit 1),
+           (select provider_name from provider_session_runtime where thread_id = t.thread_id),
+           json_extract(t.payload_json, '$.modelSelection.instanceId')
+         ) as driver,
          coalesce(json_extract(t.payload_json, '$.worktreePath'), p.workspace_root) as cwd,
          json_extract(t.payload_json, '$.modelSelection.model') as model
        from orchestration_v2_projection_threads t
@@ -116,13 +138,14 @@ export function readDatabase(db: Database): T3Code {
   for (const thread of threads) {
     // Subagents an agent spawned and tasks delegated over T3's MCP tools are child work, not sessions.
     if (thread.source === "provider" || thread.source === "mcp") continue;
-    sessions.push(summarize(thread, items.get(thread.id) ?? []));
+    const agent = DRIVERS[thread.driver ?? ""];
+    if (agent) sessions.push(summarize(agent, thread, items.get(thread.id) ?? []));
   }
   return { sessions, native };
 }
 
-function summarize(thread: ThreadRow, items: ItemRow[]): SessionSummary {
-  const summary = emptySummary("t3code", thread.id);
+function summarize(agent: AgentId, thread: ThreadRow, items: ItemRow[]): SessionSummary {
+  const summary = emptySummary(agent, thread.id);
   summary.title = thread.title;
   summary.cwd = thread.cwd ?? "";
   const times: number[] = [];

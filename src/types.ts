@@ -5,7 +5,7 @@
 // wrapped.json is a serialized Wrapped. The skill lets the agent edit
 // `persona` and `lessons` in it before rendering, so it is part of the CLI's API.
 
-export type AgentId = "claude" | "codex" | "opencode" | "pi" | "amp" | "cursor" | "grok" | "t3code";
+export type AgentId = "claude" | "codex" | "opencode" | "pi" | "amp" | "cursor" | "grok" | "devin" | "muse";
 
 export const AGENT_NAMES: Record<AgentId, string> = {
   claude: "Claude Code",
@@ -15,7 +15,8 @@ export const AGENT_NAMES: Record<AgentId, string> = {
   amp: "Amp",
   cursor: "Cursor",
   grok: "Grok Build",
-  t3code: "T3 Code",
+  devin: "Devin",
+  muse: "Muse",
 };
 
 /** One agent session, reduced to what the stats need. */

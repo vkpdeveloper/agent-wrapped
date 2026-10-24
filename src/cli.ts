@@ -17,8 +17,8 @@ Usage
   agent-wrapped agents                     Agents with local history, most sessions first
   agent-wrapped sessions [-o file]         This machine's sessions as JSON, for --add on another machine
 
-Reads T3 Code, Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build
-history on this machine. Nothing is uploaded. Secrets in prompts are masked.
+Reads Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build history on
+this machine, and the threads T3 Code ran with them. Nothing is uploaded. Secrets in prompts are masked.
 
 Options
   -o, --out <file>       Output path. Default: wrapped-<year>.mp4 (stats: wrapped-<year>.json)
