@@ -1,0 +1,73 @@
+# Builds agent-wrapped on each platform, smoke-tests rendering, and publishes
+# the archives to a GitHub release when a v* tag is pushed.
+# skill/agent-wrapped/wrapped.sh downloads these archives by name.
+name: Release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: macos-15, target: darwin-arm64 }
+          - { os: macos-15-intel, target: darwin-x64 }
+          - { os: ubuntu-24.04, target: linux-x64 }
+          - { os: ubuntu-24.04-arm, target: linux-arm64 }
+          - { os: windows-2025, target: windows-x64 }
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    env:
+      EXE: ${{ startsWith(matrix.target, 'windows') && '.exe' || '' }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.0
+      - run: bun install --frozen-lockfile
+      - run: bun run typecheck && bun test
+      - run: bun run build
+
+      - name: Smoke test
+        working-directory: dist
+        run: |
+          # Remotion caches Chrome next to the nearest package.json, as in an install.
+          echo '{ "private": true }' > package.json
+          version=$(./agent-wrapped$EXE --version)
+          if [[ "$GITHUB_REF" == refs/tags/* && "v$version" != "$GITHUB_REF_NAME" ]]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version $version" >&2
+            exit 1
+          fi
+          ./agent-wrapped$EXE agents
+          ./agent-wrapped$EXE render ../fixtures/wrapped.json -o smoke.mp4 --format square
+          test -s smoke.mp4
+
+      - name: Package
+        working-directory: dist
+        run: tar -czf ../agent-wrapped-${{ matrix.target }}.tar.gz agent-wrapped$EXE site compositor package.json
+      - uses: actions/upload-artifact@v7
+        with:
+          name: agent-wrapped-${{ matrix.target }}
+          path: agent-wrapped-${{ matrix.target }}.tar.gz
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: out
+          merge-multiple: true
+      - run: gh release create "$GITHUB_REF_NAME" out/*.tar.gz --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}
