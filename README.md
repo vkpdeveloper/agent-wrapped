@@ -16,6 +16,7 @@ Then ask your agent:
 - "make my agent wrapped"
 - "make a square agent wrapped for 2025"
 - "make my agent wrapped, but blur my project names"
+- "make a short agent wrapped I can post"
 
 The skill downloads the right binary for your machine on first use and keeps it
 updated. Works on macOS, Linux and Windows.
