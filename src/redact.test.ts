@@ -26,6 +26,7 @@ describe("redact masks", () => {
     ["sudo password on stdin", fake("printf '%s\\n' '", "Hk!@#7731", "' | ssh dell 'sudo -S pacman -Syu'"), "sudo -S pacman"],
     ["message that is only a password", fake("Hk!@#", "7731x"), ""],
     ["unprefixed token", fake("CLOUDFLARE_API_TOKEN=", "Xk9fQ2mZ7vL0pR4t", "W8yB3nC6hJ1sD5gA"), "CLOUDFLARE_API_TOKEN="],
+    ["key given in a chat", fake("updated the search key to this: ", "v2ES0sdubnWQ", "Nemouqg9J6"), "key to this: "],
     ["bare random token", fake("use this: ", "q7Rk2LmZx9VbN4tYp0Wc", "J6sHf3GdA8eU1KoT"), ""],
   ];
 
@@ -66,6 +67,7 @@ describe("redact leaves alone", () => {
     '{"anthropic-ratelimit-input-tokens-limit": "4000000"}',
     '{"secret_file_modes": {".zsh_secrets": "0600"}}',
     "usage: ls [-@ABCFGHILOPRSTUWXabcdefghiklmnopqrstuvwxy1%,]",
+    "the key to this is claude-opus-4-5 with low reasoning",
   ];
   for (const input of safe) {
     test(input, () => expect(redact(input)).toBe(input));

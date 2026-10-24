@@ -40,6 +40,8 @@ const FLAG = /(--?(?:password|passwd|pass|token|api-key|apikey|secret|auth|key)(
 const PROSE = /(\b(?:password|passwd|passcode|passphrase|pwd|pin)\s+(?:is|was|=)\s*:?\s*["'`]?)([^\s"'`]{4,})/gi;
 // "use the password Hk!@#7731": no verb, so only a value with a digit or symbol, not "password reset".
 const PROSE_BARE = /(\b(?:password|passwd|passcode|passphrase)\s+)((?=[^\s"'`]*[\d!@#$%^&*])[^\s"'`]{6,})/gi;
+// "updated the search key to this: v2ES0sd...", "the token is ...": mixed case and digits, so not "key to gpt-5"
+const PROSE_KEY = /(\b(?:key|token|secret)\s+(?:is|was|to|=)(?:\s+this)?\s*:?\s*["'`]?)((?=[\w+=.-]*\d)(?=[\w+=.-]*[a-z])(?=[\w+=.-]*[A-Z])[\w+=.-]{12,})/gi;
 // "Hk!@#7731 is the password"
 const PROSE_BEFORE = /(?<![^\s"'`])((?=[^\s"'`]*[\d!@#$%^&*])[^\s"'`]{6,})(\s+is\s+(?:the\s+|my\s+)?(?:password|passcode)\b)/gi;
 // echo 'Hk!@#7731' | sudo -S ..., also through ssh
@@ -83,6 +85,7 @@ export function redact(text: string, home?: string, found?: Set<string>): string
   out = out.replace(FLAG, (match, lead: string, value: string) => (isMaskableBare(value) ? `${lead}${hide(value)}` : match));
   out = out.replace(PROSE, (match, lead: string, value: string) => (value.includes(MASK) ? match : `${lead}${hide(value)}`));
   out = out.replace(PROSE_BARE, (match, lead: string, value: string) => (value.includes(MASK) ? match : `${lead}${hide(value)}`));
+  out = out.replace(PROSE_KEY, (match, lead: string, value: string) => (value.includes(MASK) ? match : `${lead}${hide(value)}`));
   out = out.replace(PROSE_BEFORE, (match, value: string, tail: string) => (value.includes(MASK) ? match : `${hide(value)}${tail}`));
   out = out.replace(SUDO_STDIN, (match, lead: string, quote: string, value: string, tail: string) =>
     value.includes(MASK) ? match : `${lead}${quote}${hide(value)}${quote}${tail}`,
