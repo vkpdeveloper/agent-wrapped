@@ -22,5 +22,7 @@ await cp(compositor, join(dist, "compositor"), { recursive: true });
 console.log("copied dist/compositor");
 
 // The bundler (webpack) is only needed when rendering from source.
-await $`bun build ${join(root, "src/cli.ts")} --compile --minify --external @remotion/bundler --outfile ${join(dist, "agent-wrapped")}`.quiet();
+// The binary runs inside the user's projects: never load their .env or bunfig.toml. A broken
+// one (t3code's .env was a symlink to itself) made it exit 1 before printing anything.
+await $`bun build ${join(root, "src/cli.ts")} --compile --minify --no-compile-autoload-dotenv --no-compile-autoload-bunfig --external @remotion/bundler --outfile ${join(dist, "agent-wrapped")}`.quiet();
 console.log("compiled dist/agent-wrapped");
