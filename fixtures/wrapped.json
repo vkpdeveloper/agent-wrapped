@@ -1,0 +1,305 @@
+{
+  "name": "Vaibhav",
+  "year": 2026,
+  "from": "2026-01-04",
+  "to": "2026-10-23",
+  "agents": [
+    {
+      "agent": "codex",
+      "name": "Codex",
+      "sessions": 1184,
+      "hours": 612.4,
+      "prompts": 7210,
+      "toolCalls": 31840,
+      "tokens": 1480000000,
+      "models": [
+        {
+          "name": "gpt-5-codex",
+          "count": 9120
+        },
+        {
+          "name": "gpt-5",
+          "count": 2210
+        }
+      ]
+    },
+    {
+      "agent": "claude",
+      "name": "Claude Code",
+      "sessions": 946,
+      "hours": 548.7,
+      "prompts": 6382,
+      "toolCalls": 27604,
+      "tokens": 1190000000,
+      "models": [
+        {
+          "name": "claude-opus-4-5-20251101",
+          "count": 7012
+        },
+        {
+          "name": "claude-sonnet-4-5-20250929",
+          "count": 3120
+        }
+      ]
+    },
+    {
+      "agent": "opencode",
+      "name": "OpenCode",
+      "sessions": 142,
+      "hours": 86.1,
+      "prompts": 904,
+      "toolCalls": 3410,
+      "tokens": 122000000,
+      "models": [
+        {
+          "name": "anthropic/claude-sonnet-4-5",
+          "count": 980
+        }
+      ]
+    },
+    {
+      "agent": "pi",
+      "name": "Pi",
+      "sessions": 61,
+      "hours": 36.8,
+      "prompts": 431,
+      "toolCalls": 1238,
+      "tokens": 41000000,
+      "models": [
+        {
+          "name": "gpt-5.1",
+          "count": 512
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "sessions": 2333,
+    "hours": 1284.0,
+    "prompts": 14927,
+    "toolCalls": 64092,
+    "failedCommands": 1873,
+    "tokens": 2833000000,
+    "linesAdded": 412880,
+    "linesRemoved": 187204,
+    "projects": 38,
+    "activeDays": 271
+  },
+  "projects": [
+    {
+      "name": "agent-replay",
+      "sessions": 388,
+      "hours": 231.6
+    },
+    {
+      "name": "medzimi-web",
+      "sessions": 352,
+      "hours": 204.2
+    },
+    {
+      "name": "fikrabot",
+      "sessions": 297,
+      "hours": 168.9
+    },
+    {
+      "name": "atom-desktop",
+      "sessions": 214,
+      "hours": 122.5
+    },
+    {
+      "name": "antmascot",
+      "sessions": 171,
+      "hours": 97.3
+    }
+  ],
+  "tools": [
+    {
+      "name": "shell",
+      "count": 24810
+    },
+    {
+      "name": "read",
+      "count": 16422
+    },
+    {
+      "name": "edit",
+      "count": 12093
+    },
+    {
+      "name": "search",
+      "count": 6180
+    },
+    {
+      "name": "task",
+      "count": 2904
+    },
+    {
+      "name": "web",
+      "count": 988
+    }
+  ],
+  "commands": [
+    {
+      "name": "bun test",
+      "count": 1412
+    },
+    {
+      "name": "git status",
+      "count": 1208
+    },
+    {
+      "name": "bun run typecheck",
+      "count": 904
+    },
+    {
+      "name": "rg",
+      "count": 851
+    },
+    {
+      "name": "git diff",
+      "count": 790
+    }
+  ],
+  "failures": [
+    {
+      "name": "bun test",
+      "count": 312
+    },
+    {
+      "name": "git push",
+      "count": 37
+    },
+    {
+      "name": "bun run build",
+      "count": 29
+    }
+  ],
+  "byHour": [
+    117.2,
+    67.0,
+    33.5,
+    16.7,
+    8.4,
+    4.2,
+    2.5,
+    5.0,
+    16.7,
+    41.9,
+    58.6,
+    67.0,
+    58.6,
+    50.2,
+    58.6,
+    67.0,
+    67.0,
+    58.6,
+    50.2,
+    58.6,
+    75.3,
+    92.1,
+    108.8,
+    100.4
+  ],
+  "byWeekday": [
+    141.2,
+    205.4,
+    218.3,
+    205.4,
+    192.6,
+    166.9,
+    154.1
+  ],
+  "byMonth": [
+    88.0,
+    102.0,
+    131.0,
+    119.0,
+    140.0,
+    128.0,
+    121.0,
+    152.0,
+    170.0,
+    133.0,
+    0.0,
+    0.0
+  ],
+  "longestSession": {
+    "date": "2026-03-03",
+    "time": "21:12",
+    "agent": "codex",
+    "title": "Port the renderer to Remotion 4 and fix frame drift",
+    "project": "agent-replay",
+    "hours": 9.4
+  },
+  "lateNight": {
+    "date": "2026-10-12",
+    "time": "03:47",
+    "agent": "claude",
+    "title": "Fix flaky ffmpeg concat on Linux",
+    "project": "agent-replay",
+    "hours": 1.6
+  },
+  "busiestDay": {
+    "date": "2026-09-14",
+    "sessions": 38,
+    "hours": 11.2
+  },
+  "streak": {
+    "days": 27,
+    "from": "2026-02-02",
+    "to": "2026-02-28"
+  },
+  "corrections": {
+    "total": 41,
+    "rate": 0.00275,
+    "phrases": [
+      {
+        "name": "no",
+        "count": 14
+      },
+      {
+        "name": "actually",
+        "count": 9
+      },
+      {
+        "name": "don't",
+        "count": 7
+      },
+      {
+        "name": "stop",
+        "count": 6
+      },
+      {
+        "name": "wait",
+        "count": 5
+      }
+    ],
+    "samples": [
+      "no, keep the existing bun.lock",
+      "actually use the renderer from agent-replay",
+      "don't add a dependency for that",
+      "stop, you are editing the wrong file",
+      "wait, run typecheck first",
+      "no em dashes in the copy",
+      "I said the square format too"
+    ]
+  },
+  "lessons": [
+    {
+      "rule": "Run bun run typecheck before saying a change is done",
+      "count": 14
+    },
+    {
+      "rule": "Never add a dependency without asking first",
+      "count": 9
+    },
+    {
+      "rule": "Stay inside the files the task names",
+      "count": 6
+    }
+  ],
+  "persona": {
+    "title": "The Night Shift Shipper",
+    "line": "Your best work lands after 10 PM, and Codex has learned to keep up."
+  }
+}
