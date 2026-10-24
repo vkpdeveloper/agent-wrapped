@@ -154,6 +154,8 @@ any you cannot beat.
 - Never repeat what the card already says: a sticker under "350 times"
   adds a new fact or the punch, not the 350 again.
 - Never invent or change a number; the video prints what you write.
+- Call the user "I", "me" or "they", never "he" or "she": the
+  history does not say who they are.
 - No project, client or person names, no secrets, nothing they would not
   post. Swears are censored on screen anyway.
 
