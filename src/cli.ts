@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { version } from "../package.json";
 import { allSessions, unique } from "./agents/index.ts";
-import { redact } from "./redact.ts";
+import { redactDeep } from "./redact.ts";
 import { wrap } from "./stats.ts";
 import { AGENT_NAMES, type AgentId, type SessionSummary, type Wrapped } from "./types.ts";
 
@@ -78,15 +78,10 @@ if (command === "render") {
 }
 
 if (command === "sessions") {
-  // Leaves this machine, so home paths become ~ and secrets are masked here.
-  const home = homedir();
+  // Leaves this machine, so secrets in every string are masked here and home paths become ~.
   const sessions = (await allSessions())
     .filter((session) => new Date(session.start).getFullYear() === year)
-    .map((session) => ({
-      ...session,
-      cwd: session.cwd === home || session.cwd.startsWith(`${home}/`) ? `~${session.cwd.slice(home.length)}` : session.cwd,
-      prompts: session.prompts.map((prompt) => ({ ...prompt, text: redact(prompt.text, home) })),
-    }));
+    .map((session) => redactDeep(session, homedir()));
   const json = JSON.stringify({ machine: hostname(), sessions } satisfies Export);
   if (values.out) {
     await Bun.write(resolve(values.out), json);
