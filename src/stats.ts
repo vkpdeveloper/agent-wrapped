@@ -1,11 +1,11 @@
 import { basename } from "node:path";
 import { redactDeep } from "./redact.ts";
-import { AGENT_NAMES, type AgentId, type AgentStat, type Moment, type Quote, type Ranked, type SessionSummary, type Wrapped } from "./types.ts";
+import { AGENT_NAMES, type AgentId, type AgentStat, type Commit, type Moment, type Quote, type Ranked, type SessionSummary, type Wrapped } from "./types.ts";
 
 const HOUR = 3_600_000;
 
-export function wrap(all: SessionSummary[], options: { year: number; name: string; home: string }): Wrapped {
-  const { year, name, home } = options;
+export function wrap(all: SessionSummary[], options: { year: number; name: string; home: string; commits?: Commit[] }): Wrapped {
+  const { year, name, home, commits = [] } = options;
   const sessions = all.filter((session) => new Date(session.start).getFullYear() === year).sort((a, b) => a.start - b.start);
   const prompts = sessions.flatMap((session) => session.prompts);
   const commands = sessions.flatMap((session) => session.commands);
@@ -101,6 +101,10 @@ export function wrap(all: SessionSummary[], options: { year: number; name: strin
     quotes: { title: "", lines: [] },
     lessons: [],
     persona: { title: "", line: "" },
+    swears: swears(sessions, prompts, home),
+    loop: loop(sessions, prompts, home),
+    git: gitStats(commits, commands),
+    reviews: [],
   };
   return { ...wrapped, persona: persona(wrapped, normalized) };
 }
@@ -312,6 +316,64 @@ function promptSamples(sessions: SessionSummary[], prompts: { text: string }[], 
     const at = new Date(prompt.at);
     return { text: texts[i]!, date: localDate(prompt.at), time: `${pad(at.getHours())}:${pad(at.getMinutes())}`, agent: prompt.agent };
   });
+}
+
+// Counted wherever they appear, not only at the start like corrections. Shown censored.
+const SWEARS: [string, RegExp][] = [
+  ["fuck", /\bf+u+c+k+\w*/gi],
+  ["shit", /\b(bull)?shit\w*/gi],
+  ["wtf", /\bwtf\b/gi],
+  ["damn", /\bdamn\w*/gi],
+  ["dumb", /\bdumb\w*/gi],
+  ["stupid", /\bstupid\b/gi],
+  ["idiot", /\bidiot\w*/gi],
+  ["crap", /\bcrap\w*/gi],
+];
+
+function swears(sessions: SessionSummary[], prompts: { text: string }[], home: string): Wrapped["swears"] {
+  const words: Record<string, number> = {};
+  const byMonth = new Array<number>(12).fill(0);
+  const byHour = new Array<number>(24).fill(0);
+  let please = 0;
+  let worst = { count: 0, text: "" };
+  for (const prompt of sessions.flatMap((session) => session.prompts)) {
+    let count = 0;
+    for (const [word, pattern] of SWEARS) {
+      const found = prompt.text.match(pattern)?.length ?? 0;
+      if (found) words[word] = (words[word] ?? 0) + found;
+      count += found;
+    }
+    const at = new Date(prompt.at);
+    byMonth[at.getMonth()]! += count;
+    byHour[at.getHours()]! += count;
+    please += prompt.text.match(/\bpl(ease|s|z)\b/gi)?.length ?? 0;
+    if (count > worst.count && prompt.text.length <= 200 && !prompt.text.includes("\n")) worst = { count, text: prompt.text };
+  }
+  const ranked = rank(Object.entries(words));
+  return { total: sum(ranked, (word) => word.count), words: ranked, byMonth, byHour, please, worst: worst.text && samples([worst.text], prompts, home)[0]! };
+}
+
+function loop(sessions: SessionSummary[], prompts: { text: string }[], home: string): Wrapped["loop"] {
+  let most: string[] = [];
+  let retries = 0;
+  for (const session of sessions) {
+    const corrections = session.prompts.slice(1).map((prompt) => prompt.text).filter(isCorrection);
+    if (corrections.length > most.length) most = corrections;
+    const failed = tally(session.commands.filter((command) => !command.ok).map((command) => command.command))[0];
+    retries = Math.max(retries, failed?.count ?? 0);
+  }
+  const quotable = most.filter((text) => text.length <= 160 && !text.includes("\n")).slice(0, 12);
+  return { corrections: most.length, lines: samples(quotable, prompts, home), retries };
+}
+
+function gitStats(commits: Commit[], commands: SessionSummary["commands"]): Wrapped["git"] {
+  const prs = commands.filter((command) => command.ok && /\bgh pr create\b/.test(command.command));
+  return {
+    commits: commits.length,
+    prs: prs.length,
+    prsCredited: prs.filter((command) => /generated with|co-authored-by|claude\.com\/claude-code/i.test(command.command)).length,
+    coAuthors: tally(commits.flatMap((commit) => commit.coAuthors)),
+  };
 }
 
 function moment(session: SessionSummary, home: string): Moment {

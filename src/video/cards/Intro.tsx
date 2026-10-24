@@ -1,5 +1,5 @@
 import { Rings } from "../Rings.tsx";
-import { AGENT_COLORS } from "../theme.ts";
+import { AgentIcon } from "../AgentIcon.tsx";
 import { Card, Fit, Rise, display, useEnter, useLayout, type CardProps } from "../ui.tsx";
 
 // The title is already settled on frame 0, because X and Instagram use the first
@@ -69,7 +69,7 @@ function Legend({ w }: { w: CardProps["w"] }) {
     <div style={{ display: "flex", flexWrap: "wrap", columnGap: 40, rowGap: 16, marginTop: square ? 40 : 56, fontSize: 40, fontWeight: 600 }}>
       {w.agents.slice(0, 6).map((agent, i) => (
         <Rise key={agent.agent} delay={30 + i * 5} distance={30} style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 6, background: AGENT_COLORS[agent.agent] }} />
+          <AgentIcon agent={agent.agent} size={48} />
           {agent.name}
         </Rise>
       ))}

@@ -133,9 +133,26 @@ export interface Wrapped {
   /** Up to 3 rules that would have prevented the most corrections. The skill's agent writes these. */
   lessons: { rule: string; count: number }[];
   persona: { title: string; line: string };
+  /** Swearing at the agent, counted over every prompt. `worst` is the prompt with the most, masked. */
+  swears: { total: number; words: Ranked[]; byMonth: number[]; byHour: number[]; please: number; worst: string };
+  /**
+   * The session where the user corrected their agent most, with its corrections (masked) for the
+   * skill's agent to pick the two best from, and the most times one failed command ran in a session.
+   */
+  loop: { corrections: number; lines: string[]; retries: number };
+  /** The user's commits this year and the agents that co-signed them, and the PRs their agents opened. */
+  git: { commits: number; prs: number; prsCredited: number; coAuthors: Ranked[] };
+  /** A one-line performance review per agent, written by the skill's agent. */
+  reviews: { name: string; grade: string; line: string }[];
 }
 
 /** Something the user typed, and when and to which agent. */
+/** A commit of the user's this year, and the agents named in its Co-authored-by trailers. */
+export interface Commit {
+  hash: string;
+  coAuthors: string[];
+}
+
 export interface Quote {
   text: string;
   /** YYYY-MM-DD and HH:MM, local time. */

@@ -11,8 +11,12 @@ export const BEAT = (FPS * 60) / BPM;
 export const TRANSITION = BEAT;
 
 export type Format = "vertical" | "square";
-/** `full` is the whole year for the user. `social` is a short, first-person cut to post: no projects, titles, tools or models. */
-export type Cut = "full" | "social";
+/**
+ * `full` is the whole year for the user. `social` is a short, first-person cut to post: no projects, titles, tools or models.
+ * The rest are one-joke social formats (see SKILL.md for what each is).
+ */
+export const CUT_NAMES = ["full", "social", "rage", "loop", "credit", "grind", "boss", "speedrun", "genz", "linkedin", "docu", "news", "dating", "tier", "receipt", "trailer", "chat"] as const;
+export type Cut = (typeof CUT_NAMES)[number];
 
 export const FORMATS: Record<Format, { width: number; height: number }> = {
   vertical: { width: 1080, height: 1920 },
@@ -49,7 +53,80 @@ export type CardId =
   | "no"
   | "said"
   | "reveal"
-  | "ask";
+  | "ask"
+  // The one-joke formats.
+  | "rageHook"
+  | "swears"
+  | "ragePeak"
+  | "rageWorst"
+  | "polite"
+  | "rageAsk"
+  | "loopHook"
+  | "loopLines"
+  | "retries"
+  | "failed"
+  | "loopAsk"
+  | "creditHook"
+  | "prs"
+  | "coauthors"
+  | "wrote"
+  | "creditAsk"
+  | "grindHook"
+  | "streak"
+  | "longest"
+  | "weekends"
+  | "grindAsk"
+  | "bossHook"
+  | "delegated"
+  | "review"
+  | "bossAsk"
+  | "srHook"
+  | "splits"
+  | "skips"
+  | "deaths"
+  | "srAsk"
+  | "zPov"
+  | "zRoman"
+  | "zDuality"
+  | "zSkill"
+  | "zSleep"
+  | "zAura"
+  | "zAsk"
+  | "post"
+  | "liAsk"
+  | "docHook"
+  | "docNo"
+  | "docTongue"
+  | "docPlease"
+  | "docName"
+  | "docAsk"
+  | "newsHook"
+  | "newsRetry"
+  | "newsNight"
+  | "newsCredit"
+  | "newsHours"
+  | "newsAsk"
+  | "dateHook"
+  | "dateMain"
+  | "dateEx"
+  | "dateTalking"
+  | "dateFlags"
+  | "dateAsk"
+  | "tierHook"
+  | "tierList"
+  | "tierAsk"
+  | "receipt"
+  | "receiptAsk"
+  | "trailerWorld"
+  | "trailerOne"
+  | "trailerHours"
+  | "trailerSessions"
+  | "trailerNo"
+  | "trailerTitle"
+  | "trailerAsk"
+  | "chatHook"
+  | "chat"
+  | "chatAsk";
 
 /** Beats into the quotes card where each quote starts typing, and how long it types. The soundtrack clicks along. */
 export const QUOTE_BEATS = [1, 3.5, 6, 8.5];
@@ -59,6 +136,10 @@ export const QUOTE_TYPING = 1.25;
 export const SLAM_BEAT = 1;
 export const STICKER_BEAT = 4;
 export const NO_STAMPS = [1.5, 2, 2.5, 3, 3.25, 3.5, 3.75];
+/** Beats the rows of a list card (swears, co-authors, reviews) land on. The soundtrack bleeps the swears. */
+export const ROW_BEATS = [1, 1.5, 2, 2.5, 3];
+/** Beats into the group chat each message pops on. The soundtrack bleeps each one. */
+export const CHAT_BEATS = [1, 3, 5, 6.5, 8.5, 11, 12.5, 15, 17, 20];
 
 /** Quotes on screen: a square frame fits one fewer, and the social cut keeps the best two. */
 export function quoteCount(w: Wrapped, format: Format, cut: Cut): number {
@@ -100,6 +181,110 @@ const CUTS: Record<Cut, [CardId, number][]> = {
     ["reveal", 13],
     ["ask", 10],
   ],
+  rage: [
+    ["rageHook", 9],
+    ["swears", 9],
+    ["ragePeak", 9],
+    ["rageWorst", 9],
+    ["polite", 9],
+    ["rageAsk", 10],
+  ],
+  loop: [
+    ["loopHook", 9],
+    ["loopLines", 9],
+    ["retries", 9],
+    ["failed", 9],
+    ["loopAsk", 10],
+  ],
+  credit: [
+    ["creditHook", 9],
+    ["prs", 9],
+    ["coauthors", 9],
+    ["wrote", 9],
+    ["creditAsk", 10],
+  ],
+  grind: [
+    ["grindHook", 9],
+    ["streak", 9],
+    ["longest", 9],
+    ["night", 9],
+    ["weekends", 9],
+    ["grindAsk", 10],
+  ],
+  boss: [
+    ["bossHook", 9],
+    ["delegated", 9],
+    ["review", 13],
+    ["failed", 9],
+    ["bossAsk", 10],
+  ],
+  speedrun: [
+    ["srHook", 9],
+    ["splits", 13],
+    ["skips", 9],
+    ["deaths", 9],
+    ["srAsk", 10],
+  ],
+  genz: [
+    ["zPov", 9],
+    ["zRoman", 9],
+    ["zDuality", 9],
+    ["zSkill", 9],
+    ["zSleep", 9],
+    ["zAura", 9],
+    ["zAsk", 10],
+  ],
+  linkedin: [
+    ["post", 17],
+    ["liAsk", 10],
+  ],
+  docu: [
+    ["docHook", 9],
+    ["docNo", 9],
+    ["docTongue", 9],
+    ["docPlease", 9],
+    ["docName", 9],
+    ["docAsk", 10],
+  ],
+  news: [
+    ["newsHook", 9],
+    ["newsRetry", 9],
+    ["newsNight", 9],
+    ["newsCredit", 9],
+    ["newsHours", 9],
+    ["newsAsk", 10],
+  ],
+  dating: [
+    ["dateHook", 9],
+    ["dateMain", 9],
+    ["dateEx", 9],
+    ["dateTalking", 9],
+    ["dateFlags", 9],
+    ["dateAsk", 10],
+  ],
+  tier: [
+    ["tierHook", 9],
+    ["tierList", 17],
+    ["tierAsk", 10],
+  ],
+  receipt: [
+    ["receipt", 17],
+    ["receiptAsk", 10],
+  ],
+  trailer: [
+    ["trailerWorld", 5],
+    ["trailerOne", 5],
+    ["trailerHours", 5],
+    ["trailerSessions", 5],
+    ["trailerNo", 5],
+    ["trailerTitle", 13],
+    ["trailerAsk", 10],
+  ],
+  chat: [
+    ["chatHook", 9],
+    ["chat", 29],
+    ["chatAsk", 10],
+  ],
 };
 
 function shows(id: CardId, w: Wrapped): boolean {
@@ -120,9 +305,40 @@ function shows(id: CardId, w: Wrapped): boolean {
     case "said":
       return w.quotes.lines.length > 0;
     case "night":
+    case "newsNight":
       return w.lateNight !== undefined;
     case "lessons":
       return w.lessons.length > 0;
+    case "rageHook":
+    case "swears":
+    case "ragePeak":
+    case "polite":
+      return w.swears.total > 0;
+    case "rageWorst":
+      return w.swears.worst !== "";
+    case "loopHook":
+    case "loopLines":
+      return w.loop.corrections > 0;
+    case "retries":
+    case "newsRetry":
+      return w.loop.retries > 1;
+    case "newsCredit":
+      return w.git.coAuthors.length > 0;
+    case "dateEx":
+      return w.agents.length > 1;
+    case "dateTalking":
+      return w.agents.length > 2;
+    case "docTongue":
+      return w.swears.total > 0;
+    case "failed":
+      return w.totals.failedCommands > 0;
+    case "creditHook":
+    case "coauthors":
+      return w.git.commits > 0;
+    case "prs":
+      return w.git.prs > 0;
+    case "review":
+      return w.reviews.length > 0;
     default:
       return true;
   }

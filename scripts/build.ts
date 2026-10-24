@@ -12,7 +12,7 @@ const dist = join(root, "dist");
 await rm(dist, { recursive: true, force: true });
 await mkdir(dist);
 
-await bundle({ entryPoint: join(root, "src/video/entry.ts"), outDir: join(dist, "site") });
+await bundle({ entryPoint: join(root, "src/video/entry.ts"), publicDir: join(root, "public"), outDir: join(dist, "site") });
 console.log("built dist/site");
 
 const suffix = process.platform === "linux" ? "-gnu" : process.platform === "win32" ? "-msvc" : "";

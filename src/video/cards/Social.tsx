@@ -2,7 +2,7 @@
 // numbers and the persona only, never projects, session titles, tools or models,
 // so it is safe to post as is.
 import type { CSSProperties, ReactNode } from "react";
-import { random, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import { MONO } from "../fonts.ts";
 import { clock, hours, int, plural } from "../format.ts";
 import { BEAT, NO_STAMPS, quoteCount, SLAM_BEAT, STICKER_BEAT } from "../plan.ts";
@@ -11,16 +11,16 @@ import { INSTALL } from "./Persona.tsx";
 import { Bubble } from "./Quotes.tsx";
 
 /** Beats into the card, in frames. The wipe in takes the first beat. */
-const beats = (n: number) => n * BEAT;
+export const beats = (n: number) => n * BEAT;
 
 /** 1, plus a kick on every beat from `from`: for the line that carries the card. */
-function useKick(from = 0, amount = 0.035): number {
+export function useKick(from = 0, amount = 0.035): number {
   const beat = useCurrentFrame() / BEAT;
   return beat < from ? 1 : 1 + amount * Math.exp(-(beat % 1) * 6);
 }
 
 /** Slams in from `from` times its size on beat `at`. */
-function Slam({ at, from = 2.2, rotate = 0, children, style }: { at: number; from?: number; rotate?: number; children: ReactNode; style?: CSSProperties }) {
+export function Slam({ at, from = 2.2, rotate = 0, children, style }: { at: number; from?: number; rotate?: number; children: ReactNode; style?: CSSProperties }) {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
   if (frame < beats(at)) return null;
@@ -28,8 +28,29 @@ function Slam({ at, from = 2.2, rotate = 0, children, style }: { at: number; fro
   return <div style={{ ...style, scale: String(from + (1 - from) * t), rotate: `${rotate}deg`, opacity: Math.min(1, t * 3) }}>{children}</div>;
 }
 
+/**
+ * Camera shake, a zoom punch and a white flash on each beat in `at`, gone within
+ * a beat: the hit lands on screen as the boom lands in the mix. The zoom always
+ * covers the shake, so the edges never show.
+ */
+export function Punch({ at, amount = 1, children }: { at: number[]; amount?: number; children: ReactNode }) {
+  const frame = useCurrentFrame();
+  const last = at.filter((beat) => frame >= beats(beat)).at(-1);
+  const age = last === undefined ? Infinity : frame - beats(last);
+  const k = age < BEAT ? Math.exp(-age / 3) * amount : 0;
+  const x = (random(`x${frame}`) - 0.5) * 56 * k;
+  const y = (random(`y${frame}`) - 0.5) * 56 * k;
+  const rotate = (random(`r${frame}`) - 0.5) * 3 * k;
+  return (
+    <AbsoluteFill style={{ translate: `${x}px ${y}px`, rotate: `${rotate}deg`, scale: String(1 + 0.07 * k) }}>
+      {children}
+      {age < 4 ? <AbsoluteFill style={{ background: "#ffffff", opacity: 0.55 * amount * (1 - age / 4) }} /> : null}
+    </AbsoluteFill>
+  );
+}
+
 /** A punchline on a band of ink, tilted like a sticker. */
-function Sticker({ at, rotate = -2, field, children }: { at: number; rotate?: number; field: CardProps["field"]; children: string }) {
+export function Sticker({ at, rotate = -2, field, children }: { at: number; rotate?: number; field: CardProps["field"]; children: string }) {
   const { square, inner } = useLayout();
   return (
     <Slam at={at} from={1.8} rotate={rotate} style={{ alignSelf: "flex-start", marginTop: square ? 28 : 56, background: field.ink, color: field.bg, padding: square ? "12px 22px" : "18px 30px", maxWidth: inner }}>
@@ -39,17 +60,19 @@ function Sticker({ at, rotate = -2, field, children }: { at: number; rotate?: nu
 }
 
 /** Every social card: centered, with the name of the thing in the corner so people can find it. */
-function Frame({ field, children }: { field: CardProps["field"]; children: ReactNode }) {
+export function Frame({ field, backdrop, punch = [], punchAmount = 1, children }: { field: CardProps["field"]; backdrop?: ReactNode; punch?: number[]; punchAmount?: number; children: ReactNode }) {
   const { square } = useLayout();
   return (
-    <Card field={field}>
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>{children}</div>
-      <div style={{ fontFamily: MONO, fontSize: square ? 26 : 32, fontWeight: 700, opacity: 0.6 }}>agent-wrapped</div>
-    </Card>
+    <Punch at={punch} amount={punchAmount}>
+      <Card field={field} shapes={backdrop}>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>{children}</div>
+        <div style={{ fontFamily: MONO, fontSize: square ? 26 : 32, fontWeight: 700, opacity: 0.6 }}>agent-wrapped</div>
+      </Card>
+    </Punch>
   );
 }
 
-const lead = (square: boolean): CSSProperties => ({ ...display(800, 1), fontSize: square ? 64 : 96 });
+export const lead = (square: boolean): CSSProperties => ({ ...display(800, 1), fontSize: square ? 64 : 96 });
 
 // Settled on frame 0: X and Instagram use the first frame as the thumbnail, and
 // the first second decides whether anyone keeps watching.
@@ -59,7 +82,7 @@ export function Hook({ w, field }: CardProps) {
   const total = w.totals.hours;
   const days = Math.floor(total / 24);
   return (
-    <Frame field={field}>
+    <Frame field={field} punch={[STICKER_BEAT]}>
       <div style={lead(square)}>I spent</div>
       <div style={{ scale: String(kick), transformOrigin: "0% 60%" }}>
         <Fit text={hours(total)} width={inner} max={square ? 340 : 520} min={160} type={numerals(0.95)} style={{ color: field.hi }} />
@@ -82,7 +105,7 @@ export function Ride({ w, field }: CardProps) {
   const total = w.agents.reduce((sum, agent) => sum + agent.sessions, 0) || 1;
   const others = w.agents.length - 1;
   return (
-    <Frame field={field}>
+    <Frame field={field} punch={[SLAM_BEAT, STICKER_BEAT]}>
       <div style={lead(square)}>My ride or die</div>
       <Slam at={SLAM_BEAT} from={2} style={{ scale: String(kick), transformOrigin: "0% 50%" }}>
         <Fit text={top.name} width={inner} max={square ? 180 : 260} min={90} lines={2} type={display(800, 0.95)} style={{ color: field.hi, marginTop: 8 }} />
@@ -103,7 +126,7 @@ export function Night({ w, field }: CardProps) {
   if (!w.lateNight) return null;
   const { time, half } = clock(w.lateNight.time);
   return (
-    <Frame field={field}>
+    <Frame field={field} punch={[SLAM_BEAT, STICKER_BEAT]}>
       <div style={lead(square)}>Latest night</div>
       <Slam at={SLAM_BEAT} from={2} style={{ display: "flex", alignItems: "baseline", gap: 20, scale: String(kick), transformOrigin: "0% 50%" }}>
         <div style={{ ...numerals(0.95), fontSize: square ? 250 : 360, color: field.hi }}>{time}</div>
@@ -125,7 +148,7 @@ export function No({ w, field }: CardProps) {
   const counted = useCount(total, beats(1), beats(3));
   const every = rate > 0 ? Math.max(1, Math.round(1 / rate)) : 0;
   return (
-    <Frame field={field}>
+    <Frame field={field} punch={[...NO_STAMPS, STICKER_BEAT]} punchAmount={0.5}>
       {NO_STAMPS.map((at, i) => (
         <div key={i} style={{ position: "absolute", left: 40 + random(`nx${i}`) * (width - 420), top: 120 + random(`ny${i}`) * (height - 420), opacity: 0.22 }}>
           <Slam at={at} from={2.6} rotate={(random(`nr${i}`) - 0.5) * 40}>
@@ -169,7 +192,7 @@ export function Reveal({ w, field }: CardProps) {
   const title = w.persona.title.trim() || "Certified agent wrangler";
   const line = w.persona.line.trim();
   return (
-    <Frame field={field}>
+    <Frame field={field} punch={[SLAM_BEAT]}>
       <div style={{ position: "absolute", left: 0, right: 0, bottom: square ? 120 : 220, overflow: "hidden", whiteSpace: "nowrap", opacity: 0.18 }}>
         <div style={{ ...display(800, 1, "75%"), fontSize: square ? 140 : 200, translate: `${-frame * 9}px 0` }}>{`${title.toUpperCase()} · `.repeat(8)}</div>
       </div>
@@ -187,14 +210,14 @@ export function Reveal({ w, field }: CardProps) {
 }
 
 // A question, not a sign-off: people answer with their own, which is the point.
-export function Ask({ field }: CardProps) {
+export function Ask({ field, question = "What's yours?" }: CardProps & { question?: string }) {
   const { square, inner, pad } = useLayout();
   const kick = useKick(1, 0.05);
   return (
     <Card field={field}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
         <Slam at={SLAM_BEAT} from={2.4} style={{ scale: String(kick), transformOrigin: "0% 50%" }}>
-          <Fit text="What's yours?" width={inner} max={square ? 200 : 260} min={100} lines={2} type={display(800, 0.92)} style={{ color: field.hi }} />
+          <Fit text={question} width={inner} max={square ? 200 : 260} min={100} lines={2} type={display(800, 0.92)} style={{ color: field.hi }} />
         </Slam>
         <Rise delay={beats(3)}>
           <div style={{ ...display(700, 1.1), fontSize: square ? 48 : 64, marginTop: 20 }}>Make your own in one line.</div>
@@ -206,4 +229,9 @@ export function Ask({ field }: CardProps) {
       </Rise>
     </Card>
   );
+}
+
+/** The closing card with a format's own question. */
+export function ask(question: string) {
+  return (props: CardProps) => <Ask {...props} question={question} />;
 }

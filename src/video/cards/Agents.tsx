@@ -1,4 +1,5 @@
 import type { AgentStat } from "../../types.ts";
+import { AgentIcon } from "../AgentIcon.tsx";
 import { MONO } from "../fonts.ts";
 import { hours, int, model, plural } from "../format.ts";
 import { AGENT_COLORS, mix, type Field } from "../theme.ts";
@@ -53,7 +54,8 @@ function AgentRow({ agent, share, fraction, field, delay }: { agent: AgentStat; 
   const detail = [`${int(sessions)} ${plural(agent.sessions, "session")}`, topModel ? model(topModel.name) : ""].filter(Boolean).join(", ");
   return (
     <Rise delay={delay} distance={50}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 24, marginBottom: square ? 10 : 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 24, marginBottom: square ? 10 : 14 }}>
+        <AgentIcon agent={agent.agent} size={square ? 56 : 72} />
         <Clip style={{ flex: 1, fontSize: square ? 48 : 60, fontWeight: 800, letterSpacing: "-0.02em" }}>{agent.name}</Clip>
         <div style={{ ...numerals(1), fontSize: square ? 52 : 68 }}>{Math.round(share * 100)}%</div>
       </div>
@@ -78,7 +80,9 @@ function OnlyAgent({ agent, field }: { agent: AgentStat; field: Field }) {
           <div style={{ fontSize: square ? 64 : 80, fontWeight: 700, letterSpacing: "-0.03em" }}>One agent, all year.</div>
         </Rise>
         <Rise delay={12}>
-          <div style={{ width: 140, height: 28, borderRadius: 14, background: barColor(agent, field), marginBottom: 12 }} />
+          <div style={{ marginBottom: 20 }}>
+            <AgentIcon agent={agent.agent} size={square ? 140 : 180} />
+          </div>
           <Fit text={agent.name} width={inner} max={square ? 220 : 280} min={90} type={display(800, 0.92)} />
         </Rise>
         <Rise delay={20}>

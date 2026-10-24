@@ -28,6 +28,10 @@ const empty: Wrapped = {
   quotes: { title: "", lines: [] },
   lessons: [],
   persona: { title: "", line: "" },
+  swears: { total: 0, words: [], byMonth: Array(12).fill(0), byHour: Array(24).fill(0), please: 0, worst: "" },
+  loop: { corrections: 0, lines: [], retries: 0 },
+  git: { commits: 0, prs: 0, prsCredited: 0, coAuthors: [] },
+  reviews: [],
 };
 
 export const Root = () => (

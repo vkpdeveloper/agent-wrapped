@@ -4,9 +4,11 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { version } from "../package.json";
 import { allSessions, unique } from "./agents/index.ts";
+import { commits } from "./git.ts";
 import { redactDeep } from "./redact.ts";
 import { wrap } from "./stats.ts";
-import { AGENT_NAMES, type AgentId, type SessionSummary, type Wrapped } from "./types.ts";
+import { AGENT_NAMES, type AgentId, type Commit, type SessionSummary, type Wrapped } from "./types.ts";
+import { CUT_NAMES, type Cut } from "./video/plan.ts";
 
 const HELP = `agent-wrapped: your year with coding agents, as a Wrapped video
 
@@ -26,7 +28,25 @@ Options
       --name <text>      Name on the first card. Default: your git user.name.
       --format <name>    vertical (1080x1920, default) or square (1080x1080).
       --blur-projects    Blur project names and session titles in the video.
-      --social           Short first-person cut to post: no projects, tools or models.
+      --cut <name>       Which video:
+                           full      the whole year (default)
+                           social    30s first-person cut to post: no projects, tools or models
+                           rage      how often you swore at your agent
+                           loop      the session where it would not listen
+                           credit    your commits, and how many your agents signed
+                           grind     your longest day, streak and latest night
+                           boss      you as the manager of a team of agents
+                           speedrun  the year as a world record run, with splits
+                           genz      brainrot captions, one word at a time
+                           linkedin  a humblebrag post about leading agents
+                           docu      a nature documentary about you
+                           news      breaking news, with chyron and ticker
+                           dating    your agents as your dating life
+                           tier      every agent you used, in a tier list
+                           receipt   the year printed on a receipt
+                           trailer   a movie trailer, with your persona as the title
+                           chat      your agents' group chat about you
+      --social           Same as --cut social.
       --add <file>       Also count another machine's \`agent-wrapped sessions\` output. Repeatable.
   -v, --version
   -h, --help`;
@@ -39,6 +59,7 @@ const { values, positionals } = parseArgs({
     name: { type: "string" },
     format: { type: "string" },
     "blur-projects": { type: "boolean" },
+    cut: { type: "string" },
     social: { type: "boolean" },
     add: { type: "string", multiple: true },
     help: { type: "boolean", short: "h" },
@@ -59,6 +80,9 @@ const command = positionals[0];
 const year = Number(values.year ?? new Date().getFullYear());
 const format = values.format ?? "vertical";
 if (format !== "vertical" && format !== "square") fail(`--format expects vertical or square, got "${format}"`);
+const cutName = values.social ? "social" : (values.cut ?? "full");
+if (!isCut(cutName)) fail(`--cut expects one of ${CUT_NAMES.join(", ")}, got "${cutName}"`);
+const cut: Cut = cutName;
 
 if (command === "agents") {
   const sessions = await allSessions();
@@ -75,8 +99,8 @@ if (command === "agents") {
 if (command === "render") {
   const path = positionals[1];
   if (!path) fail("render expects a wrapped.json path, from `agent-wrapped stats`");
-  // Files from before quotes existed still render, without the quotes card.
-  const wrapped: Wrapped = { promptSamples: [], quotes: { title: "", lines: [] }, ...(await Bun.file(path).json()) };
+  // Files from older versions still render: what they lack is empty, and its cards are skipped.
+  const wrapped: Wrapped = { ...wrap([], { year, name: "", home: homedir() }), ...(await Bun.file(path).json()) };
   if (!Array.isArray(wrapped.agents) || !wrapped.totals) fail(`${path} is not a wrapped.json from \`agent-wrapped stats\``);
   await render(wrapped, resolve(values.out ?? `wrapped-${wrapped.year}.mp4`));
   process.exit(0);
@@ -87,7 +111,7 @@ if (command === "sessions") {
   const sessions = (await allSessions())
     .filter((session) => new Date(session.start).getFullYear() === year)
     .map((session) => redactDeep(session, homedir()));
-  const json = JSON.stringify({ machine: hostname(), sessions } satisfies Export);
+  const json = JSON.stringify({ machine: hostname(), sessions, commits: await commits(sessions.map((session) => session.cwd.replace(/^~/, homedir())), year) } satisfies Export);
   if (values.out) {
     await Bun.write(resolve(values.out), json);
     console.log(`${resolve(values.out)}  (${sessions.length} sessions from ${year})`);
@@ -101,8 +125,12 @@ if (command === "sessions") {
 if (command !== undefined && command !== "stats") fail(`Unknown command "${command}". Run agent-wrapped --help.`);
 
 const started = performance.now();
-const machines = [{ machine: hostname(), sessions: await allSessions() }, ...(await Promise.all((values.add ?? []).map(readExport)))];
-const wrapped = wrap(unique(machines.flatMap((m) => m.sessions)), { year, name: values.name ?? (await defaultName()), home: homedir() });
+const local = await allSessions();
+const thisYear = local.filter((session) => new Date(session.start).getFullYear() === year);
+const machines = [{ machine: hostname(), sessions: local, commits: await commits(thisYear.map((session) => session.cwd), year) }, ...(await Promise.all((values.add ?? []).map(readExport)))];
+// The same repo cloned on two machines has the same commits, so they count once.
+const allCommits = [...new Map(machines.flatMap((m) => m.commits ?? []).map((commit) => [commit.hash, commit])).values()];
+const wrapped = wrap(unique(machines.flatMap((m) => m.sessions)), { year, name: values.name ?? (await defaultName()), home: homedir(), commits: allCommits });
 if (!wrapped.totals.sessions) fail(`No agent sessions from ${year} on this machine.`);
 const took = ((performance.now() - started) / 1000).toFixed(1);
 
@@ -125,6 +153,8 @@ await render(wrapped, resolve(values.out ?? `wrapped-${year}.mp4`));
 interface Export {
   machine: string;
   sessions: SessionSummary[];
+  /** Missing from exports made before 0.3. */
+  commits?: Commit[];
 }
 
 async function readExport(path: string): Promise<Export> {
@@ -144,7 +174,7 @@ async function render(wrapped: Wrapped, out: string) {
   // The \r progress line only makes sense in a terminal. Agents capture stderr.
   const tty = process.stderr.isTTY;
   let shown = -1;
-  await renderVideo(wrapped, { format: format as "vertical" | "square", cut: values.social ? "social" : "full", blurProjects: values["blur-projects"] ?? false }, out, (progress) => {
+  await renderVideo(wrapped, { format: format as "vertical" | "square", cut, blurProjects: values["blur-projects"] ?? false }, out, (progress) => {
     const percent = Math.floor(progress * 100);
     if (tty && percent !== shown && percent % 5 === 0) {
       shown = percent;
@@ -169,6 +199,10 @@ async function defaultName(): Promise<string> {
 function day(ms: number): string {
   const d = new Date(ms);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+function isCut(name: string): name is Cut {
+  return (CUT_NAMES as readonly string[]).includes(name);
 }
 
 function fail(message: string): never {

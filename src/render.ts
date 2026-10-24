@@ -32,7 +32,7 @@ export async function renderVideo(wrapped: Wrapped, { format, cut, blurProjects 
     process.chdir(home);
   } else {
     const { bundle } = await import("@remotion/bundler");
-    serveUrl = await bundle({ entryPoint: new URL("./video/entry.ts", import.meta.url).pathname });
+    serveUrl = await bundle({ entryPoint: new URL("./video/entry.ts", import.meta.url).pathname, publicDir: new URL("../public", import.meta.url).pathname });
   }
   const binariesDirectory = installed ? join(home, "compositor") : null;
   // Remotion fetches audio over HTTP, so the generated WAV is served locally for the render.

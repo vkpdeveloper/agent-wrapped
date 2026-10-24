@@ -111,6 +111,52 @@ describe("wrap", () => {
   });
 });
 
+describe("formats", () => {
+  const at = (h: number) => new Date(2026, 4, 1, h).getTime();
+
+  test("counts swears anywhere in a prompt, and keeps the worst one masked", () => {
+    const prompts = [
+      { at: at(1), text: "wtf is this, fix the fucking build" },
+      { at: at(2), text: "what the fuck, the key is sk-ant-api03-abcdefghijklmnopqrstuvwxyz, shit shit" },
+      { at: at(3), text: "please ship it" },
+    ];
+    const { swears } = wrap([session("claude", new Date(at(1)), { prompts })], options);
+    expect(swears.words).toEqual([
+      { name: "fuck", count: 2 },
+      { name: "shit", count: 2 },
+      { name: "wtf", count: 1 },
+    ]);
+    expect([swears.total, swears.please, swears.byHour[2]]).toEqual([5, 1, 3]);
+    expect(swears.worst).toStartWith("what the fuck");
+    expect(swears.worst).not.toContain("abcdefghijklmnop");
+  });
+
+  test("finds the session it would not listen in, and the most retried broken command", () => {
+    const noisy = session("codex", new Date(at(1)), {
+      prompts: ["do it", "no, not that", "don't touch the tests", "no stop"].map((text, i) => ({ at: at(1) + i, text })),
+      commands: [1, 2, 3].map(() => ({ command: "bun test", ok: false })),
+    });
+    const calm = session("claude", new Date(at(4)), { prompts: [{ at: at(4), text: "do it" }, { at: at(4) + 1, text: "no" }] });
+    const { loop } = wrap([noisy, calm], options);
+    expect(loop).toEqual({ corrections: 3, lines: ["no, not that", "don't touch the tests", "no stop"], retries: 3 });
+  });
+
+  test("counts commits once and the PRs that credit an agent", () => {
+    const commands = [
+      { command: 'gh pr create --title x --body "🤖 Generated with [Claude Code](https://claude.com/claude-code)"', ok: true },
+      { command: "gh pr create --fill", ok: true },
+      { command: "gh pr create --fill", ok: false },
+    ];
+    const commits = [
+      { hash: "a", coAuthors: ["Claude"] },
+      { hash: "b", coAuthors: ["Claude", "Cursor"] },
+      { hash: "c", coAuthors: [] },
+    ];
+    const { git } = wrap([session("claude", new Date(at(1)), { commands })], { ...options, commits });
+    expect(git).toEqual({ commits: 3, prs: 2, prsCredited: 1, coAuthors: [{ name: "Claude", count: 2 }, { name: "Cursor", count: 1 }] });
+  });
+});
+
 describe("isCorrection", () => {
   test.each([
     "no, use bun instead",

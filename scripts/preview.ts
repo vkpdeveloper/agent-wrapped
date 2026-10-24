@@ -60,7 +60,7 @@ const cut = values.social ? "social" : "full";
 const tag = `${values.thin ? "thin-" : ""}${values.social ? "social-" : ""}`;
 
 await mkdir(OUT, { recursive: true });
-const serveUrl = await bundle({ entryPoint: join(root, "src", "video", "entry.ts") });
+const serveUrl = await bundle({ entryPoint: join(root, "src", "video", "entry.ts"), publicDir: join(root, "public") });
 const browser = await openBrowser("chrome");
 
 for (const format of formats) {
