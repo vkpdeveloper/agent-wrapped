@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import type { SessionSummary } from "../types.ts";
-import { cleanPrompt, count, emptySummary, findFiles, lineCount, mapLimit, span, toolKind } from "./core.ts";
+import { addReply, cleanPrompt, count, emptySummary, findFiles, lineCount, mapLimit, span, toolKind } from "./core.ts";
 
 // Cursor's agent (the editor and the cursor-agent CLI alike) writes one
 // transcript per chat to ~/.cursor/projects/<workspace>/agent-transcripts/<id>/<id>.jsonl.
@@ -133,6 +133,7 @@ async function readSession(group: Transcript[], chats: Map<string, ChatMeta>): P
     if (record.role !== "assistant") continue;
     if (meta?.lastUsedModel) count(summary.models, meta.lastUsedModel);
     for (const block of content) {
+      if (block.type === "text") addReply(summary, block.text);
       if (block.type !== "tool_use") continue;
       const input = block.input ?? {};
       renamedTo = renameTitle(block.name, input) || renamedTo;

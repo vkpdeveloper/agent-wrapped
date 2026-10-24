@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import type { SessionSummary } from "../types.ts";
-import { cleanPrompt, count, diffLines, emptySummary, findFiles, jsonl, lineCount, mapLimit, span, toolKind } from "./core.ts";
+import { addReply, cleanPrompt, count, diffLines, emptySummary, findFiles, jsonl, lineCount, mapLimit, span, toolKind } from "./core.ts";
 
 // Pi writes ~/.pi/agent/sessions/<encoded-cwd>/<timestamp>_<id>.jsonl. The
 // first line is a session header ({type: "session", cwd, parentSession?});
@@ -80,6 +80,7 @@ export async function readSession(path: string): Promise<SessionSummary> {
       }
       for (const block of Array.isArray(content) ? content : []) {
         if (block.type === "toolCall") addToolCall(summary, block, shellCalls);
+        if (block.type === "text") addReply(summary, block.text);
       }
     } else if (message.role === "toolResult") {
       const index = shellCalls.get(message.toolCallId ?? "");

@@ -325,5 +325,21 @@
         "agent": "claude"
       }
     ]
-  }
+  },
+  "convo": [
+    {
+      "text": "bhai ye phir se toot gaya, kya kar raha hai tu",
+      "reply": "You are absolutely right. I broke it again. Fixing it properly this time.",
+      "date": "2026-03-14",
+      "time": "02:41",
+      "agent": "claude"
+    },
+    {
+      "text": "भाई मैंने बोला था टेस्ट मत हटाना",
+      "reply": "माफ़ कीजिए, मैंने टेस्ट हटा दिए थे। वापस ला रहा हूँ।",
+      "date": "2026-07-02",
+      "time": "23:18",
+      "agent": "codex"
+    }
+  ]
 }

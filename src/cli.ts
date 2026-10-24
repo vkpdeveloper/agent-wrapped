@@ -46,6 +46,7 @@ Options
                            receipt   the year printed on a receipt
                            trailer   a movie trailer, with your persona as the title
                            chat      your agents' group chat about you
+                           convo     your funniest messages with your agents, and what they said back
       --social           Same as --cut social.
       --add <file>       Also count another machine's \`agent-wrapped sessions\` output. Repeatable.
   -v, --version

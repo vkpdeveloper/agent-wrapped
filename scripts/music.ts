@@ -1,7 +1,8 @@
 // Generates the music bed for each cut into public/music/<cut>.m4a with
 // ElevenLabs Music, then fits it to the video's grid: stretched to exactly BPM,
 // and started on a beat (at the drop, for cuts that open on a hook).
-// Needs ELEVENLABS_API_KEY and ffmpeg. Usage: bun scripts/music.ts [cut...] [--seed n]
+// Needs ffmpeg and ELEVENLABS_API_KEY, or FAL_KEY to run the same model on fal.
+// Usage: bun scripts/music.ts [cut...] [--seed n]
 import { $ } from "bun";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
@@ -26,6 +27,7 @@ const STYLE: Record<Cut, { prompt: string; drop: boolean }> = {
   receipt: { drop: true, prompt: "elevator music, bossa nova lounge muzak, vibraphone, nylon guitar, cheesy shopping mall" },
   trailer: { drop: false, prompt: "epic movie trailer, hybrid orchestral, braams, huge taiko drums, rising tension, dark cinematic" },
   chat: { drop: true, prompt: "chill lofi hip hop, marimba, soft keys, vinyl crackle, cozy, playful, half time" },
+  convo: { drop: true, prompt: "cheeky comedic hip hop beat, bouncy pizzicato strings, funky slap bass, finger snaps, sitcom punchline energy, playful meme edit" },
 };
 
 /** Longer than any cut, so data that shows extra cards never runs out of music. */
@@ -39,10 +41,23 @@ const out = join(import.meta.dir, "..", "public", "music");
 await mkdir(out, { recursive: true });
 
 async function generate(prompt: string, seed?: number): Promise<ArrayBuffer> {
+  const full = `${prompt}. Exactly ${BPM} BPM, steady tempo, starts at full energy with no intro.`;
+  const fal = process.env.FAL_KEY ?? process.env.FAL_API_KEY;
+  if (!process.env.ELEVENLABS_API_KEY && fal) {
+    // fal bills by the started minute, so it gets exactly one.
+    const res = await fetch("https://fal.run/fal-ai/elevenlabs/music", {
+      method: "POST",
+      headers: { Authorization: `Key ${fal}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt: full, music_length_ms: SECONDS * 1000, force_instrumental: true }),
+    });
+    if (!res.ok) throw new Error(`fal ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const { audio } = (await res.json()) as { audio: { url: string } };
+    return (await fetch(audio.url)).arrayBuffer();
+  }
   const res = await fetch("https://api.elevenlabs.io/v1/music", {
     method: "POST",
     headers: { "xi-api-key": process.env.ELEVENLABS_API_KEY ?? "", "Content-Type": "application/json" },
-    body: JSON.stringify({ model_id: "music_v2_5", prompt: `${prompt}. Exactly ${BPM} BPM, steady tempo, starts at full energy with no intro.`, music_length_ms: (SECONDS + 10) * 1000, force_instrumental: true, seed }),
+    body: JSON.stringify({ model_id: "music_v2_5", prompt: full, music_length_ms: (SECONDS + 10) * 1000, force_instrumental: true, seed }),
   });
   if (!res.ok) throw new Error(`elevenlabs ${res.status}: ${(await res.text()).slice(0, 200)}`);
   return res.arrayBuffer();

@@ -2,7 +2,7 @@
 // wipe, a boom when the big line slams in, a stamp under the punchline, and the
 // typing, bleeps and meme hits each card's joke needs. The music itself is a
 // generated track per cut (public/music), stretched to the same beat grid.
-import { BEAT, BPM, CHAT_BEATS, FPS, NO_STAMPS, QUOTE_BEATS, QUOTE_TYPING, ROW_BEATS, SLAM_BEAT, STICKER_BEAT, totalFrames, type CardId, type PlannedCard } from "../video/plan.ts";
+import { BEAT, BPM, CHAT_BEATS, CONVO_REPLY, CONVO_SEND, CONVO_TYPING, FPS, NO_STAMPS, QUOTE_BEATS, QUOTE_TYPING, ROW_BEATS, SLAM_BEAT, STICKER_BEAT, totalFrames, type CardId, type PlannedCard } from "../video/plan.ts";
 import * as s from "./synth.ts";
 
 const SPB = 60 / BPM;
@@ -78,6 +78,15 @@ const quotes: Part = (m, from, _to, count) => {
     m.hit(s.bleep(1568, 0.07, "sine"), from + start + QUOTE_TYPING, 0.25, 0.3, 0.3);
     m.hit(s.bleep(2093, 0.1, "sine"), from + start + QUOTE_TYPING + 0.12, 0.22, 0.3, 0.3);
   }
+};
+
+/** Their message types and sends, then the agent's reply lands on the boom. */
+const exchange: Part = (m, from) => {
+  for (let i = 0; i < 12; i++) m.hit(CLICK, from + 0.5 + (CONVO_TYPING * i) / 12, 0.22 + ((i * 7) % 3) * 0.04, ((i % 5) - 2) * 0.15, 0);
+  m.hit(s.whoosh(SPB * 0.3), from + CONVO_SEND - 0.1, 0.25, 0.3, 0);
+  m.hit(s.bleep(1568, 0.07, "sine"), from + CONVO_SEND, 0.25, 0.3, 0.3);
+  m.hit(BOOM, from + CONVO_REPLY, 0.8, 0, 0.15);
+  m.hit(s.bleep(1046, 0.1, "sine"), from + CONVO_REPLY, 0.3, -0.3, 0.3);
 };
 
 /** Pushback: a record scratch, then the stamp. */
@@ -174,6 +183,10 @@ const PARTS: Partial<Record<CardId, Part>> = {
   trailerNo: braam,
   trailerTitle: (m, from) => drop(m, from + SLAM_BEAT),
   chat: hits(CHAT_BEATS, s.bleep(1568, 0.07, "sine"), 0.3),
+  convo0: exchange,
+  convo1: exchange,
+  convo2: exchange,
+  convo3: exchange,
 };
 
 /** A 48 kHz stereo WAV of the sound effects, as long as the video, for `cards` and the `quoteCount` quotes shown. */

@@ -109,6 +109,24 @@ describe("wrap", () => {
     expect(wrapped.promptSamples[0]).toMatchObject({ date: "2026-06-01", time: "03:07", agent: "codex" });
     expect(wrapped.quotes.lines).toEqual([]);
   });
+
+  test("offers exchanges with the agent's reply, pushback first, masked and without markdown", () => {
+    const at = new Date(2026, 5, 1, 3, 7).getTime();
+    const prompts = [
+      { text: "add dark mode", reply: "Adding a **dark** theme to `app.css`." },
+      { text: "no, you deleted my tests", reply: "You're absolutely right. I deleted them." },
+      { text: "ship it", reply: "Shipped. The key was sk-ant-api03-abcdefghijklmnopqrstuvwxyz0123456789" },
+      { text: "hello?" },
+    ].map((prompt, i) => ({ ...prompt, at: at + i * MIN }));
+    const wrapped = wrap([session("claude", new Date(at), { prompts })], options);
+    expect(wrapped.exchangeSamples.map(({ text, reply }) => [text, reply])).toEqual([
+      ["no, you deleted my tests", "You're absolutely right. I deleted them."],
+      ["add dark mode", "Adding a dark theme to app.css."],
+      ["ship it", "Shipped. The key was ****************"],
+    ]);
+    expect(wrapped.exchangeSamples[0]).toMatchObject({ date: "2026-06-01", time: "03:08", agent: "claude" });
+    expect(wrapped.convo).toEqual([]);
+  });
 });
 
 describe("formats", () => {

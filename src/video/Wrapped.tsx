@@ -24,6 +24,7 @@ import { TierHook, TierList } from "./formats/Tier.tsx";
 import { Receipt } from "./formats/Receipt.tsx";
 import { TrailerHours, TrailerNo, TrailerOne, TrailerSessions, TrailerTitle, TrailerWorld } from "./formats/Trailer.tsx";
 import { Chat, ChatHook } from "./formats/Chat.tsx";
+import { ConvoHook, exchange } from "./formats/Convo.tsx";
 import { BEAT, planCards, totalFrames, TRANSITION, type CardId, type WrappedProps } from "./plan.ts";
 import { PALETTES, type Field, type Palette } from "./theme.ts";
 import { BlurProjects, type CardProps } from "./ui.tsx";
@@ -119,6 +120,12 @@ const CARDS: Record<CardId, ComponentType<CardProps>> = {
   chatHook: ChatHook,
   chat: Chat,
   chatAsk: ask("What do yours say about you?"),
+  convoHook: ConvoHook,
+  convo0: exchange(0),
+  convo1: exchange(1),
+  convo2: exchange(2),
+  convo3: exchange(3),
+  convoAsk: ask("What did yours say back?"),
 };
 
 // The middle cards walk this order; intro is always dark and the persona always

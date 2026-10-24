@@ -32,8 +32,11 @@ export interface SessionSummary {
   end: number;
   /** Sum of gaps of at most 10 minutes between consecutive records: time actually spent. */
   activeMs: number;
-  /** What the person typed, in order. No tool results, system reminders, or injected context. */
-  prompts: { at: number; text: string }[];
+  /**
+   * What the person typed, in order. No tool results, system reminders, or injected context.
+   * `reply` is the first thing the agent wrote back, clipped to 400 characters, if it wrote anything.
+   */
+  prompts: { at: number; text: string; reply?: string }[];
   /** Model id -> assistant turns that used it. */
   models: Record<string, number>;
   /** Tool kind -> calls. Kinds: shell, edit, read, search, web, task, todo, mcp, or the tool's own lowercased name. */
@@ -130,6 +133,10 @@ export interface Wrapped {
   promptSamples: Quote[];
   /** The user's own lines, picked from `promptSamples` by the skill's agent. The video shows up to 4 on their own card. */
   quotes: { title: string; lines: Quote[] };
+  /** Up to 150 short prompts with the agent's reply, redacted, for the skill's agent to pick `convo` from. Not shown in the video. */
+  exchangeSamples: Exchange[];
+  /** The funniest back-and-forths with their agents, picked from `exchangeSamples` by the skill's agent. The convo cut shows up to 4. */
+  convo: Exchange[];
   /** Up to 3 rules that would have prevented the most corrections. The skill's agent writes these. */
   lessons: { rule: string; count: number }[];
   persona: { title: string; line: string };
@@ -146,17 +153,22 @@ export interface Wrapped {
   reviews: { name: string; grade: string; line: string }[];
 }
 
-/** Something the user typed, and when and to which agent. */
 /** A commit of the user's this year, and the agents named in its Co-authored-by trailers. */
 export interface Commit {
   hash: string;
   coAuthors: string[];
 }
 
+/** Something the user typed, and when and to which agent. */
 export interface Quote {
   text: string;
   /** YYYY-MM-DD and HH:MM, local time. */
   date: string;
   time: string;
   agent: AgentId;
+}
+
+/** Something the user typed and what the agent said back. */
+export interface Exchange extends Quote {
+  reply: string;
 }

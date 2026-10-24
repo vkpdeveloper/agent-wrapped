@@ -201,7 +201,11 @@ describe("grok", () => {
           content: { type: "text", text: "<runtime_info>running in T3 Code</runtime_info>\n<pull_request_linking>x</pull_request_linking>" },
           _meta: { promptIndex: 0 },
         }),
+        // The reply streams in chunks until the first tool call; text after it is the work.
+        update(t + 500, { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "On it, " } }),
+        update(t + 500, { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "checking the tests." } }),
         update(t + 1000, { sessionUpdate: "tool_call", toolCallId: "c1", title: "run_terminal_command", rawInput: { command: "bun test" }, _meta: { "x.ai/tool": { name: "run_terminal_command" } } }),
+        update(t + 1000, { sessionUpdate: "agent_message_chunk", content: { type: "text", text: " One fails." } }),
         update(t + 1000, { sessionUpdate: "tool_call", toolCallId: "c1", title: "run_terminal_command", rawInput: { command: "bun test" }, _meta: { "x.ai/tool": { name: "run_terminal_command" } } }),
         update(t + 2000, { sessionUpdate: "tool_call_update", toolCallId: "c1", status: "completed", rawOutput: { type: "Bash", exit_code: 1 } }),
         update(t + 3000, { sessionUpdate: "tool_call", toolCallId: "c2", title: "run_terminal_command", rawInput: { command: "bun dev" }, _meta: { "x.ai/tool": { name: "run_terminal_command" } } }),
@@ -225,7 +229,7 @@ describe("grok", () => {
       title: "Fix login",
       cwd: "/work",
       prompts: [
-        { at: t, text: "fix the login" },
+        { at: t, text: "fix the login", reply: "On it, checking the tests." },
         { at: t + 60_000, text: "ship it" },
       ],
       models: { "grok-4.6-build": 3 },

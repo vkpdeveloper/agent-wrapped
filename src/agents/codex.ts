@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { SessionSummary } from "../types.ts";
-import { cleanPrompt, count, diffLines, emptySummary, findFiles, jsonl, lineCount, mapLimit, span } from "./core.ts";
+import { addReply, cleanPrompt, count, diffLines, emptySummary, findFiles, jsonl, lineCount, mapLimit, span } from "./core.ts";
 
 // Codex writes ~/.codex/sessions/YYYY/MM/DD/rollout-*.jsonl (and moves archived
 // ones to ~/.codex/archived_sessions). `event_msg/item_completed` records carry
@@ -30,7 +30,8 @@ type CodexItem =
   | { type: "Extension"; kind?: string }
   | { type: "SubAgentActivity"; kind?: string }
   | { type: "ImageView" }
-  | { type: "AgentMessage" | "Reasoning" | "ContextCompaction" };
+  | { type: "AgentMessage"; content?: { type: string; text?: string }[] }
+  | { type: "Reasoning" | "ContextCompaction" };
 
 const KEPT = /"type":"(session_meta|turn_context|event_msg)"/;
 
@@ -104,6 +105,9 @@ function addItem(summary: SessionSummary, item: CodexItem, at: number): void {
       if (text) summary.prompts.push({ at, text });
       break;
     }
+    case "AgentMessage":
+      addReply(summary, (item.content ?? []).map((part) => part.text ?? "").join("\n"));
+      break;
     case "CommandExecution": {
       // Codex runs reads and searches through the shell too; parsed_cmd says which they were.
       const parsed = (item.parsed_cmd ?? []).map((cmd) => cmd.type);

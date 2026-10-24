@@ -2,7 +2,7 @@ import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { SessionSummary } from "../types.ts";
-import { cleanPrompt, count, diffLines, emptySummary, findFiles, lineCount, mapLimit, span, toolKind } from "./core.ts";
+import { addReply, cleanPrompt, count, diffLines, emptySummary, findFiles, lineCount, mapLimit, span, toolKind } from "./core.ts";
 
 // Amp keeps one JSON file per thread in ~/.local/share/amp/threads/T-<id>.json.
 // Most of a thread lives on Amp's servers, and threads that were opened but
@@ -105,6 +105,7 @@ export async function readSession(path: string): Promise<SessionSummary | undefi
       summary.tokens.output += usage.outputTokens ?? 0;
     }
     for (const block of content) {
+      if (block.type === "text") addReply(summary, block.text);
       if (block.type !== "tool_use") continue;
       const kind = KINDS[block.name] ?? toolKind(block.name);
       count(summary.tools, kind);

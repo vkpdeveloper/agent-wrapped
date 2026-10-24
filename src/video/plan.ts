@@ -15,7 +15,7 @@ export type Format = "vertical" | "square";
  * `full` is the whole year for the user. `social` is a short, first-person cut to post: no projects, titles, tools or models.
  * The rest are one-joke social formats (see SKILL.md for what each is).
  */
-export const CUT_NAMES = ["full", "social", "rage", "loop", "credit", "grind", "boss", "speedrun", "genz", "linkedin", "docu", "news", "dating", "tier", "receipt", "trailer", "chat"] as const;
+export const CUT_NAMES = ["full", "social", "rage", "loop", "credit", "grind", "boss", "speedrun", "genz", "linkedin", "docu", "news", "dating", "tier", "receipt", "trailer", "chat", "convo"] as const;
 export type Cut = (typeof CUT_NAMES)[number];
 
 export const FORMATS: Record<Format, { width: number; height: number }> = {
@@ -126,7 +126,13 @@ export type CardId =
   | "trailerAsk"
   | "chatHook"
   | "chat"
-  | "chatAsk";
+  | "chatAsk"
+  | "convoHook"
+  | "convo0"
+  | "convo1"
+  | "convo2"
+  | "convo3"
+  | "convoAsk";
 
 /** Beats into the quotes card where each quote starts typing, and how long it types. The soundtrack clicks along. */
 export const QUOTE_BEATS = [1, 3.5, 6, 8.5];
@@ -140,6 +146,11 @@ export const NO_STAMPS = [1.5, 2, 2.5, 3, 3.25, 3.5, 3.75];
 export const ROW_BEATS = [1, 1.5, 2, 2.5, 3];
 /** Beats into the group chat each message pops on. The soundtrack bleeps each one. */
 export const CHAT_BEATS = [1, 3, 5, 6.5, 8.5, 11, 12.5, 15, 17, 20];
+
+/** Convo cut: beats into each exchange card where the message has typed, sends, and the agent's reply lands. */
+export const CONVO_TYPING = 1;
+export const CONVO_SEND = 1.75;
+export const CONVO_REPLY = 3.25;
 
 /** Quotes on screen: a square frame fits one fewer, and the social cut keeps the best two. */
 export function quoteCount(w: Wrapped, format: Format, cut: Cut): number {
@@ -285,6 +296,14 @@ const CUTS: Record<Cut, [CardId, number][]> = {
     ["chat", 29],
     ["chatAsk", 10],
   ],
+  convo: [
+    ["convoHook", 9],
+    ["convo0", 9],
+    ["convo1", 9],
+    ["convo2", 9],
+    ["convo3", 9],
+    ["convoAsk", 10],
+  ],
 };
 
 function shows(id: CardId, w: Wrapped): boolean {
@@ -339,6 +358,11 @@ function shows(id: CardId, w: Wrapped): boolean {
       return w.git.prs > 0;
     case "review":
       return w.reviews.length > 0;
+    case "convo0":
+    case "convo1":
+    case "convo2":
+    case "convo3":
+      return w.convo.length > Number(id.at(-1));
     default:
       return true;
   }

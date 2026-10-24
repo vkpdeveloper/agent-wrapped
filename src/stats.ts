@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 import { redactDeep } from "./redact.ts";
-import { AGENT_NAMES, type AgentId, type AgentStat, type Commit, type Moment, type Quote, type Ranked, type SessionSummary, type Wrapped } from "./types.ts";
+import { AGENT_NAMES, type AgentId, type AgentStat, type Commit, type Exchange, type Moment, type Quote, type Ranked, type SessionSummary, type Wrapped } from "./types.ts";
 
 const HOUR = 3_600_000;
 
@@ -99,6 +99,8 @@ export function wrap(all: SessionSummary[], options: { year: number; name: strin
     },
     promptSamples: promptSamples(sessions, prompts, home),
     quotes: { title: "", lines: [] },
+    exchangeSamples: exchangeSamples(sessions, prompts, home),
+    convo: [],
     lessons: [],
     persona: { title: "", line: "" },
     swears: swears(sessions, prompts, home),
@@ -309,13 +311,46 @@ function promptSamples(sessions: SessionSummary[], prompts: { text: string }[], 
       return true;
     })
     .sort((a, b) => a.at - b.at);
-  const step = Math.max(1, candidates.length / limit);
-  const picked = Array.from({ length: Math.min(limit, candidates.length) }, (_, i) => candidates[Math.floor(i * step)]!);
+  const picked = spread(candidates, limit);
   const texts = samples(picked.map((prompt) => prompt.text), prompts, home);
-  return picked.map((prompt, i) => {
-    const at = new Date(prompt.at);
-    return { text: texts[i]!, date: localDate(prompt.at), time: `${pad(at.getHours())}:${pad(at.getMinutes())}`, agent: prompt.agent };
-  });
+  return picked.map((prompt, i) => quote(prompt, texts[i]!));
+}
+
+/**
+ * Short prompts and the agent's first words back, for the convo cut. Half come from
+ * pushback, where agents say the funniest things ("You're absolutely right!"), the
+ * rest spread over the year. Kept in whatever language they were typed in.
+ */
+function exchangeSamples(sessions: SessionSummary[], prompts: { text: string }[], home: string, limit = 150): Exchange[] {
+  const seen = new Set<string>();
+  const candidates = sessions
+    .flatMap((session) => session.prompts.map((prompt, i) => ({ ...prompt, agent: session.agent, pushback: i > 0 && isCorrection(prompt.text) })))
+    .filter(({ text, reply }) => {
+      const line = text.replace(/\s+/g, " ").trim();
+      const key = line.toLowerCase();
+      if (!reply || reply.length < 8 || reply.startsWith("```")) return false;
+      if (line.length < 2 || line.length > 200 || /^[</]/.test(line) || text.includes("```") || text.split("\n").length > 4 || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => a.at - b.at);
+  const pushback = spread(candidates.filter((prompt) => prompt.pushback), limit / 2);
+  const picked = [...pushback, ...spread(candidates.filter((prompt) => !prompt.pushback), limit - pushback.length)];
+  const texts = samples(picked.map((prompt) => prompt.text), prompts, home);
+  // Markdown emphasis and code ticks would show as literal characters on screen.
+  const replies = samples(picked.map((prompt) => prompt.reply!.replace(/\*\*|`/g, "")), prompts, home);
+  return picked.map((prompt, i) => ({ ...quote(prompt, texts[i]!), reply: replies[i]! }));
+}
+
+/** Up to `limit` of `items`, evenly spaced, so every part of the year gets a say. */
+function spread<T>(items: T[], limit: number): T[] {
+  const step = Math.max(1, items.length / limit);
+  return Array.from({ length: Math.min(Math.floor(limit), items.length) }, (_, i) => items[Math.floor(i * step)]!);
+}
+
+function quote(prompt: { at: number; agent: AgentId }, text: string): Quote {
+  const at = new Date(prompt.at);
+  return { text, date: localDate(prompt.at), time: `${pad(at.getHours())}:${pad(at.getMinutes())}`, agent: prompt.agent };
 }
 
 // Counted wherever they appear, not only at the start like corrections. Shown censored.

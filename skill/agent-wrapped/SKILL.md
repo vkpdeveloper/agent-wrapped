@@ -1,6 +1,6 @@
 ---
 name: agent-wrapped
-description: Make a Spotify Wrapped-style video of the user's year with coding agents (Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build, and the ones T3 Code runs) from the session history on this machine or several, with stats, their agent persona, and the lessons hidden in how often they corrected the agent, or a short format made to post (dev rage, the agent that would not listen, who signed their commits, the grind, managing a team of agents). Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, or stats about how they use coding agents.
+description: Make a Spotify Wrapped-style video of the user's year with coding agents (Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build, and the ones T3 Code runs) from the session history on this machine or several, with stats, their agent persona, and the lessons hidden in how often they corrected the agent, or a short format made to post (dev rage, the agent that would not listen, who signed their commits, the grind, managing a team of agents, the funniest things their agents said back). Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, or stats about how they use coding agents.
 ---
 
 # Agent Wrapped
@@ -69,6 +69,7 @@ show images, show the previews of the formats you offer.
 | `receipt` | A printed receipt on a counter, a line per stat, the persona as the total, a barcode | Elevator bossa | `totals` |
 | `trailer` | A stormy city, spaced serif title cards ("In a world where agents write the code"), the persona as the title | Trailer braams | `totals.hours`, `persona.title` |
 | `chat` | Their agents' group chat gossiping about them, logos as avatars | Lofi | `agents` (needs 2 or more), `swears.please` |
+| `convo` | Their real messages with their agents, one per screen like a chat screenshot: their line types and sends, the agent's reply lands. Any language | Comedy hip hop | `exchangeSamples` (pick `convo`), `totals.prompts` |
 
 Leave out a format whose numbers are zero or tiny (2 swears is not dev rage).
 Every format but `full` is made to post: no projects, tools or models, and
@@ -113,13 +114,21 @@ Only for the formats they picked:
 
 - `loop`: `loop.lines` holds that session's pushback. Reorder it so the two
   funniest come first (the video shows two), by the same rules as the quotes.
+- `convo`: read `exchangeSamples`, things they typed (`text`) with the
+  agent's first words back (`reply`), and copy the 3 or 4 funniest pairs
+  into `convo`, funniest first, keeping `date`, `time` and `agent`. The
+  reply is the joke: an agent owning up ("Yes, I broke the status format."),
+  "You're absolutely right", a deadpan answer to a rant. Cut the reply down to
+  its funny part, at most 100 characters, and the text to at most 120, but
+  never add or translate words: Hindi, Hinglish or any other language shows
+  as typed. Same skips as the quotes. Leave `convo` empty to skip the cut.
 - `boss`: write `reviews`, a performance review for each of the top 4 agents
   in `agents`: `name`, a `grade` ("A+", "B-", "C") and a `line` of at most 6
   words, a joke grounded in its real numbers ("969 sessions. Never sleeps.").
   Leave it empty to skip the card.
 
-Save the edited JSON. Lessons only show in `full`, and quotes in `full` and
-`social`, so skip the steps a picked format does not use.
+Save the edited JSON. Lessons only show in `full`, quotes in `full` and
+`social`, and `convo` in its own cut, so skip the steps a picked format does not use.
 
 ## 5. Render
 

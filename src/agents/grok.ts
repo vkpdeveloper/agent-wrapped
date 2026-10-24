@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { basename, dirname, join } from "node:path";
 import type { SessionSummary } from "../types.ts";
-import { cleanPrompt, count, emptySummary, findFiles, jsonl, lineCount, mapLimit, span, toolKind } from "./core.ts";
+import { addReply, cleanPrompt, count, emptySummary, findFiles, jsonl, lineCount, mapLimit, span, toolKind } from "./core.ts";
 
 // Grok Build keeps a folder per session in ~/.grok/sessions/<url-encoded cwd>/<id>/.
 // summary.json has the cwd, title and session kind. updates.jsonl is the
@@ -73,7 +73,9 @@ export async function readSession(dir: string): Promise<SessionSummary | undefin
   summary.cwd = meta.info?.cwd ?? "";
   const times: number[] = [];
   // A prompt arrives as several chunks (the typed text, images, injected context) sharing a promptIndex.
-  const prompts = new Map<number, { at: number; texts: string[] }>();
+  // `reply` collects the agent's text after it until its first tool call.
+  const prompts = new Map<number, { at: number; texts: string[]; reply: string; replied: boolean }>();
+  let current: { reply: string; replied: boolean } | undefined;
   // Tool call id -> index into summary.commands, so results can mark failures.
   const shellCalls = new Map<string, number>();
   const seenCalls = new Set<string>();
@@ -87,15 +89,18 @@ export async function readSession(dir: string): Promise<SessionSummary | undefin
     switch (update.sessionUpdate) {
       case "user_message_chunk": {
         const index = update._meta?.promptIndex ?? prompts.size;
-        const prompt = prompts.get(index) ?? { at, texts: [] };
+        const prompt = prompts.get(index) ?? { at, texts: [], reply: "", replied: false };
         prompts.set(index, prompt);
-        const content = update.content;
-        if (!content || typeof content !== "object" || !("text" in content) || typeof content.text !== "string") break;
-        const text = cleanPrompt(content.text);
+        current = prompt;
+        const text = cleanPrompt(textOf(update.content));
         if (text) prompt.texts.push(text);
         break;
       }
+      case "agent_message_chunk":
+        if (current && !current.replied) current.reply += textOf(update.content);
+        break;
       case "tool_call": {
+        if (current?.reply) current.replied = true;
         const id = update.toolCallId ?? "";
         // A call can be announced more than once as it streams in.
         if (seenCalls.has(id)) break;
@@ -136,7 +141,9 @@ export async function readSession(dir: string): Promise<SessionSummary | undefin
   }
 
   for (const prompt of prompts.values()) {
-    if (prompt.texts.length) summary.prompts.push({ at: prompt.at, text: prompt.texts.join("\n") });
+    if (!prompt.texts.length) continue;
+    summary.prompts.push({ at: prompt.at, text: prompt.texts.join("\n") });
+    addReply(summary, prompt.reply);
   }
   if (!summary.prompts.length && !seenCalls.size) return undefined;
   return { ...summary, ...span(times) };
@@ -164,4 +171,9 @@ function addDiffs(summary: SessionSummary, content: unknown): void {
     summary.linesRemoved += lineCount(part.oldText ?? "");
     summary.linesAdded += lineCount(part.newText ?? "");
   }
+}
+
+/** The text of an ACP content block, or "" for images and other blocks. */
+function textOf(content: unknown): string {
+  return content && typeof content === "object" && "text" in content && typeof content.text === "string" ? content.text : "";
 }

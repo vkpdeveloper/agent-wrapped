@@ -111,6 +111,20 @@ export function cleanPrompt(raw: string): string {
   return text;
 }
 
+/** Long enough for the line worth quoting, short enough that a year of replies stays small. */
+export const REPLY_CHARS = 400;
+
+/**
+ * Keeps the agent's first text after the latest prompt as its reply. That is where
+ * "You're absolutely right" lives; later text is mostly the work. Readers call it
+ * for every assistant text in order, so only the first one sticks.
+ */
+export function addReply(summary: SessionSummary, text: string): void {
+  const prompt = summary.prompts.at(-1);
+  const reply = text.trim();
+  if (prompt && prompt.reply === undefined && reply) prompt.reply = reply.slice(0, REPLY_CHARS);
+}
+
 /** Added and removed lines of a unified diff, ignoring the ---/+++ file headers. */
 export function diffLines(diff: string): { added: number; removed: number } {
   let added = 0;

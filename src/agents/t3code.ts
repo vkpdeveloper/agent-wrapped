@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { AgentId, SessionSummary } from "../types.ts";
-import { cleanPrompt, count, diffLines, emptySummary, lineCount, span, toolKind } from "./core.ts";
+import { addReply, cleanPrompt, count, diffLines, emptySummary, lineCount, span, toolKind } from "./core.ts";
 
 // T3 Code is an app that drives harnesses (Codex, Claude Code, Grok Build,
 // OpenCode and more), so it is not counted as an agent itself: every thread
@@ -120,8 +120,8 @@ export function readDatabase(db: Database): T3Code {
            json_extract(payload_json, '$.startedAt') as started,
            json_extract(payload_json, '$.completedAt') as completed,
            json_extract(payload_json, '$.createdBy') as by,
-           case type when 'user_message' then json_extract(payload_json, '$.text')
-                     when 'command_execution' then json_extract(payload_json, '$.input') end as text,
+           case when type in ('user_message', 'assistant_message') then json_extract(payload_json, '$.text')
+                when type = 'command_execution' then json_extract(payload_json, '$.input') end as text,
            json_extract(payload_json, '$.exitCode') as exit,
            case type when 'file_change' then json_extract(payload_json, '$.diffStr') end as diff,
            json_extract(payload_json, '$.toolName') as tool,
@@ -158,6 +158,9 @@ function summarize(agent: AgentId, thread: ThreadRow, items: ItemRow[]): Session
         if (text) summary.prompts.push({ at: Date.parse(item.started ?? ""), text });
         break;
       }
+      case "assistant_message":
+        addReply(summary, item.text ?? "");
+        break;
       case "command_execution":
         count(summary.tools, "shell");
         summary.commands.push({ command: unwrapShell(item.text ?? ""), ok: item.status !== "failed" && (item.exit ?? 0) === 0 });

@@ -3,7 +3,7 @@ import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import type { SessionSummary } from "../types.ts";
-import { cleanPrompt, count, diffLines, emptySummary, lineCount, span, toolKind } from "./core.ts";
+import { addReply, cleanPrompt, count, diffLines, emptySummary, lineCount, span, toolKind } from "./core.ts";
 
 // OpenCode keeps sessions in SQLite (~/.local/share/opencode/opencode.db): one
 // `session_v2` row per session and one `session_message` row per user message,
@@ -39,7 +39,8 @@ type Part =
         metadata?: { exit?: number | null; files?: { patch?: string }[] };
       };
     }
-  | { type: "text" | "reasoning" };
+  | { type: "text"; text?: string }
+  | { type: "reasoning" };
 
 const FILE_TOOLS = new Set(["edit", "write", "patch", "apply_patch", "multiedit"]);
 
@@ -98,6 +99,7 @@ export function summarize(row: SessionRow, messages: MessageRow[]): SessionSumma
     }
     for (const part of message.content ?? []) {
       if (part.type === "tool") addTool(summary, part);
+      if (part.type === "text") addReply(summary, part.text ?? "");
     }
   }
   return { ...summary, ...span(times) };

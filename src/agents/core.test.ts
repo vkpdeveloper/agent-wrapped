@@ -85,6 +85,8 @@ describe("claude", () => {
 
     const session = await readClaude(path);
     expect(session.prompts.map((prompt) => prompt.text)).toEqual(["add a login page", "no, keep the old one"]);
+    // The first text after a prompt is its reply; the last prompt got none.
+    expect(session.prompts.map((prompt) => prompt.reply)).toEqual(["Running tests", undefined]);
     expect(session.tokens).toEqual({ input: 2 * 1110, output: 2 * 5 });
     expect(session.models).toEqual({ "claude-opus-5-5": 2 });
     expect(session.tools).toEqual({ shell: 1, edit: 1 });
@@ -116,12 +118,14 @@ describe("codex", () => {
       item(0, { type: "UserMessage", content: [{ type: "text", text: "<environment_context>\n<cwd>/repo</cwd>" }] }),
       item(1, { type: "UserMessage", content: [{ type: "text", text: "run the tests" }] }),
       tokens(2, 1000, 50),
+      item(2, { type: "AgentMessage", content: [{ type: "Text", text: "Running them now." }] }),
       item(3, { type: "CommandExecution", command: ["/bin/zsh", "-lc", "bun test"], exit_code: 1, parsed_cmd: [{ type: "unknown" }] }),
       item(3, { type: "CommandExecution", command: ["/bin/zsh", "-lc", "rg foo"], exit_code: 0, parsed_cmd: [{ type: "search" }] }),
+      item(4, { type: "AgentMessage", content: [{ type: "Text", text: "One test fails." }] }),
       tokens(4, 3000, 120),
     ]);
     const session = await readCodex(path);
-    expect(session?.prompts.map((prompt) => prompt.text)).toEqual(["run the tests"]);
+    expect(session?.prompts).toEqual([{ at: Date.parse(at(1)), text: "run the tests", reply: "Running them now." }]);
     expect(session?.tokens).toEqual({ input: 3000, output: 120 });
     expect(session?.models).toEqual({ "gpt-6-sol": 2 });
     expect(session?.tools).toEqual({ shell: 1, search: 1 });

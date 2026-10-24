@@ -26,6 +26,8 @@ const empty: Wrapped = {
   corrections: { total: 0, rate: 0, phrases: [], samples: [] },
   promptSamples: [],
   quotes: { title: "", lines: [] },
+  exchangeSamples: [],
+  convo: [],
   lessons: [],
   persona: { title: "", line: "" },
   swears: { total: 0, words: [], byMonth: Array(12).fill(0), byHour: Array(24).fill(0), please: 0, worst: "" },

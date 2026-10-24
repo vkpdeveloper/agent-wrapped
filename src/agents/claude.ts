@@ -1,7 +1,7 @@
 import { homedir } from "node:os";
 import { basename, join } from "node:path";
 import type { SessionSummary } from "../types.ts";
-import { cleanPrompt, count, emptySummary, findFiles, jsonl, lineCount, mapLimit, span, toolKind } from "./core.ts";
+import { addReply, cleanPrompt, count, emptySummary, findFiles, jsonl, lineCount, mapLimit, span, toolKind } from "./core.ts";
 
 // Claude Code writes one JSON record per line to
 // ~/.claude/projects/<cwd>/<session>.jsonl. Subagent transcripts live one level
@@ -107,6 +107,7 @@ export async function readSession(path: string): Promise<SessionSummary> {
       }
     }
     for (const block of content) {
+      if (block.type === "text") addReply(summary, block.text);
       if (block.type !== "tool_use") continue;
       const kind = toolKind(block.name);
       count(summary.tools, kind);
