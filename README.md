@@ -20,9 +20,12 @@ updated. Works on macOS, Linux and Windows.
 
 ## What it reads
 
-Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build, whichever have
-history on your machine, ranked by how much you use them. Everything stays
+T3 Code, Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build, whichever
+have history on your machine, ranked by how much you use them. Everything stays
 local: nothing is uploaded, and secrets in prompts are masked.
+
+Use more than one machine? Ask for "my agent wrapped across all my machines"
+and the skill collects each one's sessions over SSH.
 
 ## CLI
 
@@ -34,6 +37,9 @@ agent-wrapped -o wrapped.mp4             # this year, vertical
 agent-wrapped --year 2025 --format square
 agent-wrapped stats -o wrapped.json      # the numbers, to edit lessons or persona
 agent-wrapped render wrapped.json -o wrapped.mp4
+
+ssh laptop agent-wrapped sessions > laptop.json   # another machine's sessions
+agent-wrapped --add laptop.json                   # counted together, duplicates once
 ```
 
 ## License

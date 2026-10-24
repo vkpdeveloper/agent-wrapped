@@ -149,6 +149,9 @@ describe("projectName", () => {
     [`${HOME}/.codex/worktrees/1a2b/agent-wrapped`, "agent-wrapped"],
     [`${HOME}/Developer/app/.claude/worktrees/fix-login`, "app"],
     ["/private/tmp/demo", "demo"],
+    [`${HOME}/.t3/scratch/2026-10-23-fix-ci`, ""],
+    ["~/Developer/remote-app", "remote-app"],
+    ["~", ""],
     [HOME, ""],
     ["", ""],
   ])("%p -> %p", (cwd, expected) => expect(projectName(cwd, HOME)).toBe(expected));

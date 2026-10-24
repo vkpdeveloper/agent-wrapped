@@ -1,6 +1,6 @@
 ---
 name: agent-wrapped
-description: Make a Spotify Wrapped-style video of the user's year with coding agents (Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build) from the session history on this machine, with stats, their agent persona, and the lessons hidden in how often they corrected the agent. Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, or stats about how they use coding agents.
+description: Make a Spotify Wrapped-style video of the user's year with coding agents (T3 Code, Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build) from the session history on this machine or several, with stats, their agent persona, and the lessons hidden in how often they corrected the agent. Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, or stats about how they use coding agents.
 ---
 
 # Agent Wrapped
@@ -23,6 +23,23 @@ It finds every supported agent with local history, ranks them by session count,
 and prints a one-line summary. Add `--year 2025` for another year and
 `--name "..."` if the user gives a name for the first card. The JSON holds
 prompt excerpts, so keep it in the temp directory, never in a project.
+
+Sessions run through T3 Code count as T3 Code, once, not again under the agent
+it drove.
+
+### Other machines
+
+When the user wants every machine counted, export each one's sessions over SSH
+(it installs the binary there the same way) and add them:
+
+```sh
+ssh <host> 'curl -fsSL https://raw.githubusercontent.com/vkpdeveloper/agent-wrapped/main/skill/agent-wrapped/wrapped.sh | sh -s -- sessions --year <year>' > "${TMPDIR:-/tmp}/wrapped-<host>.json"
+<skill-dir>/wrapped.sh stats --add "${TMPDIR:-/tmp}/wrapped-<host>.json" --add ... -o "${TMPDIR:-/tmp}/wrapped.json"
+```
+
+Use only hosts the user named or already reaches by SSH alias. Exports mask
+secrets and show the home directory as `~`. A session found on two machines
+counts once.
 
 ## 2. Write the lessons
 

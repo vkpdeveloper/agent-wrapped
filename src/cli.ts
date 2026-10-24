@@ -1,9 +1,10 @@
 #!/usr/bin/env bun
-import { homedir, userInfo } from "node:os";
+import { homedir, hostname, userInfo } from "node:os";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { version } from "../package.json";
-import { allSessions } from "./agents/index.ts";
+import { allSessions, unique } from "./agents/index.ts";
+import { redact } from "./redact.ts";
 import { wrap } from "./stats.ts";
 import { AGENT_NAMES, type AgentId, type SessionSummary, type Wrapped } from "./types.ts";
 
@@ -14,15 +15,17 @@ Usage
   agent-wrapped stats [options]            Write the stats as JSON (edit lessons and persona there)
   agent-wrapped render <wrapped.json>      Render a video from that JSON
   agent-wrapped agents                     Agents with local history, most sessions first
+  agent-wrapped sessions [-o file]         This machine's sessions as JSON, for --add on another machine
 
-Reads Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build history on
-this machine. Nothing is uploaded. Secrets in prompts are masked.
+Reads T3 Code, Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build
+history on this machine. Nothing is uploaded. Secrets in prompts are masked.
 
 Options
   -o, --out <file>       Output path. Default: wrapped-<year>.mp4 (stats: wrapped-<year>.json)
       --year <n>         Default: this year.
       --name <text>      Name on the first card. Default: your git user.name.
       --format <name>    vertical (1080x1920, default) or square (1080x1080).
+      --add <file>       Also count another machine's \`agent-wrapped sessions\` output. Repeatable.
   -v, --version
   -h, --help`;
 
@@ -33,6 +36,7 @@ const { values, positionals } = parseArgs({
     year: { type: "string" },
     name: { type: "string" },
     format: { type: "string" },
+    add: { type: "string", multiple: true },
     help: { type: "boolean", short: "h" },
     version: { type: "boolean", short: "v" },
   },
@@ -73,15 +77,38 @@ if (command === "render") {
   process.exit(0);
 }
 
+if (command === "sessions") {
+  // Leaves this machine, so home paths become ~ and secrets are masked here.
+  const home = homedir();
+  const sessions = (await allSessions())
+    .filter((session) => new Date(session.start).getFullYear() === year)
+    .map((session) => ({
+      ...session,
+      cwd: session.cwd === home || session.cwd.startsWith(`${home}/`) ? `~${session.cwd.slice(home.length)}` : session.cwd,
+      prompts: session.prompts.map((prompt) => ({ ...prompt, text: redact(prompt.text, home) })),
+    }));
+  const json = JSON.stringify({ machine: hostname(), sessions } satisfies Export);
+  if (values.out) {
+    await Bun.write(resolve(values.out), json);
+    console.log(`${resolve(values.out)}  (${sessions.length} sessions from ${year})`);
+  } else {
+    process.stdout.write(json);
+  }
+  process.exit(0);
+}
+
 if (command !== undefined && command !== "stats") fail(`Unknown command "${command}". Run agent-wrapped --help.`);
 
 const started = performance.now();
-const wrapped = wrap(await allSessions(), { year, name: values.name ?? (await defaultName()), home: homedir() });
+const machines = [{ machine: hostname(), sessions: await allSessions() }, ...(await Promise.all((values.add ?? []).map(readExport)))];
+const wrapped = wrap(unique(machines.flatMap((m) => m.sessions)), { year, name: values.name ?? (await defaultName()), home: homedir() });
 if (!wrapped.totals.sessions) fail(`No agent sessions from ${year} on this machine.`);
 const took = ((performance.now() - started) / 1000).toFixed(1);
 
 const agents = wrapped.agents.map((a) => `${a.name} ${a.sessions}`).join(", ");
-const summary = `${wrapped.totals.sessions} sessions (${agents}), ${Math.round(wrapped.totals.hours)}h, ${wrapped.totals.prompts} prompts, ${wrapped.corrections.total} corrections`;
+const machineCount = new Set(machines.map((m) => m.machine)).size;
+const across = machineCount > 1 ? ` on ${machineCount} machines` : "";
+const summary = `${wrapped.totals.sessions} sessions${across} (${agents}), ${Math.round(wrapped.totals.hours)}h, ${wrapped.totals.prompts} prompts, ${wrapped.corrections.total} corrections`;
 
 if (command === "stats") {
   const out = resolve(values.out ?? `wrapped-${year}.json`);
@@ -92,6 +119,23 @@ if (command === "stats") {
 
 console.log(`${summary}, read in ${took}s`);
 await render(wrapped, resolve(values.out ?? `wrapped-${year}.mp4`));
+
+/** What `agent-wrapped sessions` writes. */
+interface Export {
+  machine: string;
+  sessions: SessionSummary[];
+}
+
+async function readExport(path: string): Promise<Export> {
+  let data: Export;
+  try {
+    data = await Bun.file(path).json();
+  } catch {
+    fail(`could not read ${path}`);
+  }
+  if (!Array.isArray(data?.sessions)) fail(`${path} is not the output of \`agent-wrapped sessions\``);
+  return data;
+}
 
 async function render(wrapped: Wrapped, out: string) {
   const { renderVideo } = await import("./render.ts");

@@ -140,7 +140,8 @@ function agentStats(sessions: SessionSummary[]): AgentStat[] {
  */
 export function projectName(cwd: string, home: string): string {
   const path = cwd.replace(/\/+$/, "");
-  if (!path || path === home.replace(/\/+$/, "")) return "";
+  // Other machines' sessions arrive with their home as ~. T3 Code's scratch threads have no project.
+  if (!path || path === "~" || path === home.replace(/\/+$/, "") || /\/\.t3\/scratch(\/|$)/.test(path)) return "";
   const worktree =
     /\/\.t3\/worktrees\/([^/]+)\//.exec(path) ??
     /\/\.codex\/worktrees\/[^/]+\/([^/]+)/.exec(path) ??
