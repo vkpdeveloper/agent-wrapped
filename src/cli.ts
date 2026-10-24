@@ -4,11 +4,12 @@ import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { version } from "../package.json";
 import { allSessions, unique } from "./agents/index.ts";
+import { brief } from "./brief.ts";
 import { commits } from "./git.ts";
 import { redactDeep } from "./redact.ts";
 import { wrap } from "./stats.ts";
 import { AGENT_NAMES, type AgentId, type Commit, type SessionSummary, type Wrapped } from "./types.ts";
-import { CUT_NAMES, LINES, planCards, type Cut } from "./video/plan.ts";
+import { CUT_NAMES, type Cut } from "./video/plan.ts";
 
 const HELP = `agent-wrapped: your year with coding agents, as a Wrapped video
 
@@ -16,7 +17,7 @@ Usage
   agent-wrapped [options]                  Read your sessions and render the video
   agent-wrapped stats [options]            Write the stats as JSON (edit lessons and persona there)
   agent-wrapped render <wrapped.json>      Render a video from that JSON
-  agent-wrapped lines <wrapped.json>       The jokes a --cut takes from \`lines\` in that JSON, card by card
+  agent-wrapped lines <wrapped.json>       What to write the jokes of a --cut from: its angle, your facts and words, its cards
   agent-wrapped agents                     Agents with local history, most sessions first
   agent-wrapped sessions [-o file]         This machine's sessions as JSON, for --add on another machine
 
@@ -105,12 +106,7 @@ if (command === "render") {
 }
 
 if (command === "lines") {
-  const wrapped = await readWrapped(positionals[1], "lines");
-  for (const { id } of planCards(wrapped, cut)) {
-    const slot = LINES[id];
-    if (slot) console.log(`${id.padEnd(16)} ${slot}`);
-  }
-  if (cut === "chat") console.log(`${"chat".padEnd(16)} the whole thread, in \`chat\`: up to 10 messages between their agents (and "me")`);
+  console.log(brief(await readWrapped(positionals[1], "lines"), cut));
   process.exit(0);
 }
 

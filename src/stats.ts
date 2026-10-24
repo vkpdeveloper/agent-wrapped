@@ -356,7 +356,7 @@ function quote(prompt: { at: number; agent: AgentId }, text: string): Quote {
 }
 
 // Counted wherever they appear, not only at the start like corrections. Shown censored.
-const SWEARS: [string, RegExp][] = [
+export const SWEARS: [string, RegExp][] = [
   ["fuck", /\bf+u+c+k+\w*/gi],
   ["shit", /\b(bull)?shit\w*/gi],
   ["wtf", /\bwtf\b/gi],

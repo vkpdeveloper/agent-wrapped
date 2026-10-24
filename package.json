@@ -1,6 +1,6 @@
 {
   "name": "agent-wrapped",
-  "version": "0.2.10",
+  "version": "0.2.11",
   "description": "Your year with coding agents, as a Wrapped-style video. Reads Claude Code, Codex, OpenCode, Pi, Amp, Cursor and Grok Build sessions locally.",
   "license": "MIT",
   "type": "module",

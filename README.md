@@ -23,8 +23,11 @@ Then ask your agent:
 - "show the funniest things my agent said back to me"
 - "make my agent wrapped, but blur my project names"
 - "make my agent wrapped across all my machines"
+- `/agent-wrapped chat` in Claude Code, `$agent-wrapped roast me` in Codex
 
-Your agent shows you the formats with your own numbers and recommends one. The
+That is the whole prompt. Your agent shows you the formats with your own
+numbers and recommends one, and the skill knows each format's joke and digs up
+your loudest lines for it, so there is nothing to explain. The
 skill downloads the right binary for your machine on first use and keeps it
 updated. Works on macOS, Linux and Windows.
 
@@ -60,6 +63,7 @@ agent-wrapped -o wrapped.mp4                  # this year, vertical
 agent-wrapped --year 2025 --format square
 agent-wrapped stats -o wrapped.json           # the numbers, to edit lessons, quotes or persona
 agent-wrapped render wrapped.json --social    # the 30 second cut to post
+agent-wrapped lines wrapped.json --cut rage   # what its jokes are written from
 agent-wrapped render wrapped.json --cut rage  # any format above
 agent-wrapped render wrapped.json --blur-projects
 ssh laptop agent-wrapped sessions > laptop.json

@@ -1,6 +1,6 @@
 ---
 name: agent-wrapped
-description: Make a Spotify Wrapped-style video of the user's year with coding agents (Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build, and the ones T3 Code runs) from the session history on this machine or several, with stats, their agent persona, and the lessons hidden in how often they corrected the agent, or a short format made to post (dev rage, the agent that would not listen, who signed their commits, the grind, managing a team of agents, the funniest things their agents said back). Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, or stats about how they use coding agents.
+description: Make a Spotify Wrapped-style video of the user's year with coding agents (Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build, and the ones T3 Code runs) from the session history on this machine or several, with stats, their agent persona, and the lessons hidden in how often they corrected the agent, or a short format made to post (dev rage, the agent that would not listen, who signed their commits, the grind, managing a team of agents, the funniest things their agents said back). Use when the user asks for their agent wrapped, coding wrapped, AI wrapped, year in review with agents, a roast of how they use agents, their agents' group chat, or stats about how they use coding agents.
 ---
 
 # Agent Wrapped
@@ -143,36 +143,44 @@ Save the edited JSON. Lessons only show in `full`, quotes in `full` and
 ## 5. Write the jokes
 
 Every format but `full` is a meme, and the jokes on it should be about this
-user, not anyone's. For each format they picked, list the cards that take a
-joke and what each shows:
+user, not anyone's. The user should not have to explain the joke: the brief
+below carries it. For each format they picked, print its brief:
 
 ```sh
 <skill-dir>/wrapped.sh lines "${TMPDIR:-/tmp}/wrapped.json" --cut <name>
 ```
 
-Write one into `lines`, keyed by card id (`"lines": { "rageHook": "..." }`),
-within each card's limit. A card left out keeps its built-in joke, so skip
-any you cannot beat.
+Write the jokes from the brief alone; there is no need to read the JSON again.
 
-- Ground every joke in their data: a number from the JSON, something they
-  typed (`promptSamples`, `corrections.samples`), something an agent said back
-  (`exchangeSamples`), their hours, their swear words, which agent they cheat
-  on. A line that fits every user is a miss.
+- `Angle`: the format's comedy. Every line plays it.
+- `Facts`: their numbers, already worked out: who they cheat on, who they
+  ghosted, their worst hour, the pleases against the swears.
+- `Their words`: their loudest prompts and the times an agent owned up,
+  verbatim. A line they really typed beats any line you can write, so quote
+  them (you may cut one down, never reword it).
+- `Cards`: each card that takes a joke, what it already shows, and its limit.
+
+Write one into `lines`, keyed by card id (`"lines": { "rageHook": "..." }`).
+A card left out keeps its built-in joke, so skip any you cannot beat. For
+`chat`, the thread goes in `chat` as `{ "from": "<agent id>" | "me", "text": "..." }`.
+
 - Write like a meme page, not a report: roast them and their agents, be
   specific and a little unhinged, end on the punch. Use their own slang and
   language (Hinglish stays Hinglish).
-- Never repeat what the card already says: a sticker under "350 times"
-  adds a new fact or the punch, not the 350 again.
 - Never invent or change a number; the video prints what you write.
 - Call the user "I", "me" or "they", never "he" or "she": the
   history does not say who they are.
 - No project, client or person names, no secrets, nothing they would not
   post. Swears are censored on screen anyway.
 
-For `chat`, also write `chat`: the whole group chat, 8 to 10 messages, each
-`{ "from": "<agent id from agents>" | "me", "text": "..." }`, at most 60
-characters each. Their actual top agents gossip about them using real
-numbers and habits, and it ends on one message from `"me"`.
+Then check every line and rewrite each one that fails:
+
+1. It holds a number from `Facts` or words from `Their words`.
+2. It would be wrong about any other user. A line that fits everyone is a miss.
+3. It adds what the card does not already say: a sticker under "350 times"
+   brings a new fact or the punch, not the 350 again.
+4. A stranger would laugh, or wince, without context.
+5. It is within its limit.
 
 ## 6. Render
 
