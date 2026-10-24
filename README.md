@@ -1,9 +1,13 @@
 # agent-wrapped
 
+[![skills.sh](https://skills.sh/b/vkpdeveloper/agent-wrapped)](https://skills.sh/vkpdeveloper/agent-wrapped)
+
 Your year with coding agents, as a Wrapped video. Hours, your #1 agent, top
 projects, your 3am sessions, how often you told your agent "no", the rules
 that would have saved you the trouble, and your best lines, picked by your own
 agent from what you typed. It comes with a soundtrack generated to its cuts.
+
+[![Demo: the 30 second social cut, with sound](docs/demo.gif)](docs/demo.mp4)
 
 ## Install
 

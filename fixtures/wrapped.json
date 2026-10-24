@@ -301,5 +301,29 @@
   "persona": {
     "title": "The Night Shift Shipper",
     "line": "Your best work lands after 10 PM, and Codex has learned to keep up."
+  },
+  "promptSamples": [],
+  "quotes": {
+    "title": "Things you actually typed.",
+    "lines": [
+      {
+        "text": "no. the other button. the blue one.",
+        "date": "2026-03-14",
+        "time": "23:12",
+        "agent": "claude"
+      },
+      {
+        "text": "why are you running the tests again, i said ship it",
+        "date": "2026-08-02",
+        "time": "02:40",
+        "agent": "codex"
+      },
+      {
+        "text": "ok that worked. dont touch anything else",
+        "date": "2026-10-12",
+        "time": "03:47",
+        "agent": "claude"
+      }
+    ]
   }
 }
