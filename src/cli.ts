@@ -92,7 +92,8 @@ if (command === "sessions") {
     await Bun.write(resolve(values.out), json);
     console.log(`${resolve(values.out)}  (${sessions.length} sessions from ${year})`);
   } else {
-    process.stdout.write(json);
+    // Bun.write resolves once all of it is written; process.exit after stdout.write can cut a pipe short.
+    await Bun.write(Bun.stdout, json);
   }
   process.exit(0);
 }

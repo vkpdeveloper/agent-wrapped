@@ -130,9 +130,12 @@ export function lineCount(text: string): number {
 /**
  * Streams a JSONL file and yields each parsed record. `keep` sees the raw line
  * first so readers can skip large records they never use without parsing them.
- * Malformed lines are skipped: sessions are often still being written.
+ * Malformed lines are skipped: sessions are often still being written. A
+ * missing file yields nothing: agents leave half-created session folders.
  */
 export async function* jsonl<T>(path: string, keep?: (line: string) => boolean): AsyncGenerator<T> {
+  const file = Bun.file(path);
+  if (!(await file.exists())) return;
   const decoder = new TextDecoder();
   let buffer = "";
   const parse = (line: string): T | undefined => {
@@ -143,7 +146,7 @@ export async function* jsonl<T>(path: string, keep?: (line: string) => boolean):
       return undefined;
     }
   };
-  for await (const chunk of Bun.file(path).stream()) {
+  for await (const chunk of file.stream()) {
     buffer += decoder.decode(chunk, { stream: true });
     let start = 0;
     let end = buffer.indexOf("\n");

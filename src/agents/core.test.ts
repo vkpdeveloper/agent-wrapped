@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readSession as readClaude } from "./claude.ts";
 import { readSession as readCodex } from "./codex.ts";
-import { cleanPrompt, span } from "./core.ts";
+import { cleanPrompt, jsonl, span } from "./core.ts";
 
 const dir = mkdtempSync(join(tmpdir(), "agent-wrapped-"));
 afterAll(() => rmSync(dir, { recursive: true, force: true }));
@@ -27,6 +27,11 @@ describe("span", () => {
       activeMs: 17 * min,
     });
   });
+});
+
+test("jsonl yields nothing for a file that does not exist", async () => {
+  const records = await Array.fromAsync(jsonl(join(tmpdir(), "agent-wrapped-missing", "updates.jsonl")));
+  expect(records).toEqual([]);
 });
 
 describe("cleanPrompt", () => {
