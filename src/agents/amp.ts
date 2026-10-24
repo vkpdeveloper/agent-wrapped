@@ -76,7 +76,7 @@ export async function readSession(path: string): Promise<SessionSummary | undefi
   const summary = emptySummary("amp", thread.id ?? basename(path, ".json"));
   summary.title = thread.title ?? "";
   const uri = thread.env?.initial?.trees?.[0]?.uri;
-  if (uri?.startsWith("file://")) summary.cwd = fileURLToPath(uri);
+  if (uri?.startsWith("file://")) summary.cwd = filePath(uri);
   const times = [thread.created ?? 0];
   // tool_use id -> its call, so the result can mark failures and count lines.
   const calls = new Map<string, Call>();
@@ -136,5 +136,14 @@ function addResult(summary: SessionSummary, call: Call | undefined, run: ToolRun
     summary.linesRemoved += removed;
   } else if (call.name === "create_file" && typeof call.input.content === "string") {
     summary.linesAdded += lineCount(call.input.content);
+  }
+}
+
+/** A file:// URI as a local path. A drive-less URI throws on Windows, so fall back to its path. */
+function filePath(uri: string): string {
+  try {
+    return fileURLToPath(uri);
+  } catch {
+    return decodeURIComponent(new URL(uri).pathname);
   }
 }
