@@ -34,30 +34,30 @@ function Scene({ backdrop, line, settled = false }: { backdrop: string; line: st
   );
 }
 
-export function DocHook({ w }: CardProps) {
+export function DocHook({ w, line }: CardProps) {
   const late = w.lateNight ? clock(w.lateNight.time) : undefined;
   return late ? (
-    <Scene settled backdrop={late.time} line={`Here we observe the developer, still awake at ${late.time} ${late.half}.`} />
+    <Scene settled backdrop={late.time} line={line ?? `Here we observe the developer, still awake at ${late.time} ${late.half}.`} />
   ) : (
-    <Scene settled backdrop={int(w.totals.hours)} line={`Here we observe the developer. ${int(w.totals.hours)} hours with its agents this year.`} />
+    <Scene settled backdrop={int(w.totals.hours)} line={line ?? `Here we observe the developer. ${int(w.totals.hours)} hours with its agents this year.`} />
   );
 }
 
-export function DocNo({ w }: CardProps) {
-  return <Scene backdrop={int(w.corrections.total)} line={`When its agent disobeys, it says no. ${int(w.corrections.total)} times this year.`} />;
+export function DocNo({ w, line }: CardProps) {
+  return <Scene backdrop={int(w.corrections.total)} line={line ?? `When its agent disobeys, it says no. ${int(w.corrections.total)} times this year.`} />;
 }
 
-export function DocTongue({ w }: CardProps) {
+export function DocTongue({ w, line }: CardProps) {
   const [first, second] = w.swears.words;
   const words = [first, second].flatMap((word) => (word ? `${censor(word.name)}: ${int(word.count)}` : []));
-  return <Scene backdrop={first ? censor(first.name).toUpperCase() : "..."} line={`It communicates in a primitive language. ${words.join(". ")}.`} />;
+  return <Scene backdrop={first ? censor(first.name).toUpperCase() : "..."} line={line ?? `It communicates in a primitive language. ${words.join(". ")}.`} />;
 }
 
-export function DocPlease({ w }: CardProps) {
-  return <Scene backdrop={int(w.swears.please)} line={`And yet, remarkably, it says please. ${int(w.swears.please)} times.`} />;
+export function DocPlease({ w, line }: CardProps) {
+  return <Scene backdrop={int(w.swears.please)} line={line ?? `And yet, remarkably, it says please. ${int(w.swears.please)} times.`} />;
 }
 
-export function DocName({ w }: CardProps) {
+export function DocName({ w, line }: CardProps) {
   const title = w.persona.title.trim() || "The Agent Wrangler";
-  return <Scene backdrop={title} line={`Scientists have named this one: ${title}.`} />;
+  return <Scene backdrop={title} line={line ?? `Scientists have named this one: ${title}.`} />;
 }

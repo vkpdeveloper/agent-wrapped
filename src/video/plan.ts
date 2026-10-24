@@ -152,6 +152,95 @@ export const CONVO_TYPING = 1;
 export const CONVO_SEND = 1.75;
 export const CONVO_REPLY = 3.25;
 
+const sticker = (card: string) => `the punchline stamped under "${card}", at most 8 words`;
+const ASK = "the closing question to the viewer, at most 6 words";
+const genz = (about: string) => `the whole caption about ${about}, lowercase brainrot, at most 14 words, keeping the number`;
+const docu = (about: string) => `the narrator's subtitle about ${about}, Attenborough voice, at most 18 words`;
+const news = (about: string) => `the chyron headline about ${about} (the number in the box), ALL CAPS, at most 12 words`;
+const trailer = (about: string) => `the title card${about}, ALL CAPS, at most 8 words`;
+const bio = (agent: string) => `the dating bio of ${agent}, at most 8 words`;
+
+/**
+ * The joke each card takes from `lines`, written by the skill's agent from the
+ * user's real data, in place of the built-in one. Cards not listed take none.
+ * Each names what the card already shows, so the joke can land on it.
+ */
+export const LINES: Partial<Record<CardId, string>> = {
+  hook: sticker("I spent <totals.hours> hours with AI agents"),
+  ride: 'the jab under "My ride or die: <agents[0].name>", at most 8 words',
+  night: sticker("Latest night: <lateNight.time>, still prompting"),
+  no: sticker("I told my agent no <corrections.total> times"),
+  ask: ASK,
+  rageHook: sticker("I swore at my AI <swears.total> times this year"),
+  ragePeak: sticker("Peak rage: <the month with most swears>"),
+  rageWorst: 'the agent\'s reply under their worst swear (<swears.worst>), at most 6 words',
+  polite: sticker("I said please <swears.please> times"),
+  rageAsk: ASK,
+  loopHook: sticker("I told my agent no <loop.corrections> times in one session"),
+  retries: sticker("It ran the same broken command <loop.retries> times"),
+  failed: sticker("My agents ran <totals.failedCommands> commands that failed"),
+  loopAsk: ASK,
+  creditHook: sticker("I made <git.commits> commits this year"),
+  prs: sticker("My agents opened <git.prs> pull requests"),
+  coauthors: sticker("the agents that co-signed their commits, <git.coAuthors>"),
+  wrote: sticker("It wrote +<totals.linesAdded> lines"),
+  creditAsk: ASK,
+  grindHook: sticker("I worked <busiestDay.hours> hours in one day"),
+  streak: sticker("My streak: <streak.days> days in a row"),
+  longest: sticker("Longest session: <longestSession.hours> hours"),
+  weekends: sticker("On weekends: <byWeekday[0] + byWeekday[6]> hours with my agents"),
+  grindAsk: ASK,
+  bossHook: sticker("I managed <agents.length> AI agents this year"),
+  delegated: sticker("They made <totals.toolCalls> tool calls for me"),
+  bossAsk: ASK,
+  srHook: sticker("World record: <totals.hours> hours, AGENT% ANY%"),
+  skips: sticker("Skips used"),
+  deaths: sticker("Deaths: <totals.failedCommands> failed commands"),
+  srAsk: ASK,
+  zPov: genz("<totals.hours> hours with AI"),
+  zRoman: genz("<agents[0].name>, <agents[0].sessions> sessions"),
+  zDuality: genz("<swears.please> pleases vs <swears.total> swears"),
+  zSkill: genz("<totals.failedCommands> failed commands"),
+  zSleep: genz("<lateNight.time>, or their latest hours"),
+  zAura: genz("telling the agent no <corrections.total> times"),
+  zAsk: ASK,
+  post: 'the whole LinkedIn post, 4 to 6 short lines joined with "\\n", humblebrag voice, with their real numbers; the last line is the big sign-off',
+  liAsk: ASK,
+  docHook: docu("<lateNight.time> or <totals.hours> hours"),
+  docNo: docu("telling its agent no <corrections.total> times"),
+  docTongue: docu("its swear words, <swears.words>"),
+  docPlease: docu("saying please <swears.please> times"),
+  docName: docu("the species name, <persona.title>"),
+  docAsk: ASK,
+  newsHook: news("<swears.total> swears, or <corrections.total> noes without swears"),
+  newsRetry: news("<loop.retries> retries of one broken command"),
+  newsNight: news("<lateNight.time>"),
+  newsCredit: news("<git.coAuthors[0]> signing <its count> commits"),
+  newsHours: news("<totals.hours> hours"),
+  newsAsk: ASK,
+  dateHook: sticker("My relationship status with AI: It's complicated"),
+  dateMain: bio("<agents[0].name>, the main one"),
+  dateEx: bio("<agents[1].name>, the ex"),
+  dateTalking: bio("their last agent, the talking stage"),
+  dateFlags: sticker("Red flags: told them no <corrections.total> times"),
+  dateAsk: ASK,
+  tierHook: sticker("Ranking every AI agent I used: <agents.length>"),
+  tierAsk: ASK,
+  receipt: 'the footer under the itemized year, 1 or 2 lines joined with "\\n", at most 22 characters each',
+  receiptAsk: ASK,
+  trailerWorld: trailer(' opening "IN A WORLD WHERE..."'),
+  trailerOne: trailer(' introducing the hero, "ONE DEVELOPER"'),
+  trailerHours: trailer(", keeping <totals.hours> HOURS"),
+  trailerSessions: trailer(", keeping <totals.sessions> SESSIONS"),
+  trailerNo: trailer(", keeping the <corrections.total> times they said no"),
+  trailerTitle: "the tagline under the title <persona.title>, at most 6 words",
+  trailerAsk: ASK,
+  chatHook: sticker("I found my agents' group chat"),
+  chatAsk: ASK,
+  convoHook: sticker("I sent my AI <totals.prompts> messages. It answered back."),
+  convoAsk: ASK,
+};
+
 /** Quotes on screen: a square frame fits one fewer, and the social cut keeps the best two. */
 export function quoteCount(w: Wrapped, format: Format, cut: Cut): number {
   const room = cut === "social" ? 2 : format === "square" ? 3 : QUOTE_BEATS.length;

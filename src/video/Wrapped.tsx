@@ -3,7 +3,7 @@ import { AbsoluteFill, Easing, Html5Audio, interpolate, Sequence, staticFile, us
 import { Agents } from "./cards/Agents.tsx";
 import { Clock } from "./cards/Clock.tsx";
 import { Corrections } from "./cards/Corrections.tsx";
-import { BossAsk, BossHook, CoAuthors, CreditAsk, CreditHook, Delegated, Failed, GrindAsk, GrindHook, Longest, LoopAsk, LoopHook, LoopLines, Polite, Prs, RageAsk, RageHook, RagePeak, RageWorst, Review, Retries, Streak, Swears, Weekends, Wrote } from "./cards/Formats.tsx";
+import { BossAsk, BossHook, censor, CoAuthors, CreditAsk, CreditHook, Delegated, Failed, GrindAsk, GrindHook, Longest, LoopAsk, LoopHook, LoopLines, Polite, Prs, RageAsk, RageHook, RagePeak, RageWorst, Review, Retries, Streak, Swears, Weekends, Wrote } from "./cards/Formats.tsx";
 import { Hours } from "./cards/Hours.tsx";
 import { Intro } from "./cards/Intro.tsx";
 import { Lessons } from "./cards/Lessons.tsx";
@@ -160,7 +160,7 @@ export function WrappedVideo({ wrapped, cut, blurProjects = false, soundtrack }:
           return (
             <Sequence key={card.id} name={card.id} from={card.from} durationInFrames={card.duration}>
               <Slot index={i} duration={card.duration} last={i === cards.length - 1}>
-                <Card w={wrapped} field={field} />
+                <Card w={wrapped} field={field} line={written(wrapped, card.id)} />
               </Slot>
             </Sequence>
           );
@@ -168,6 +168,12 @@ export function WrappedVideo({ wrapped, cut, blurProjects = false, soundtrack }:
       </AbsoluteFill>
     </BlurProjects.Provider>
   );
+}
+
+/** The agent's line for a card, censored like everything else posted. Blank counts as none. */
+function written(w: WrappedProps["wrapped"], id: CardId): string | undefined {
+  const line = w.lines[id]?.trim();
+  return line ? censor(line) : undefined;
 }
 
 const wipeEase = Easing.bezier(0.75, 0, 0.25, 1);

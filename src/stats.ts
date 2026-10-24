@@ -107,6 +107,8 @@ export function wrap(all: SessionSummary[], options: { year: number; name: strin
     loop: loop(sessions, prompts, home),
     git: gitStats(commits, commands),
     reviews: [],
+    lines: {},
+    chat: [],
   };
   return { ...wrapped, persona: persona(wrapped, normalized) };
 }

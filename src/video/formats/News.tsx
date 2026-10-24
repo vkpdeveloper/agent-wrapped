@@ -55,24 +55,24 @@ function Broadcast({ w, value, headline, settled = false }: { w: CardProps["w"];
   );
 }
 
-export function NewsHook({ w }: CardProps) {
-  return <Broadcast settled w={w} value={int(w.swears.total || w.corrections.total)} headline={w.swears.total ? `LOCAL DEV SWEARS AT AI ${int(w.swears.total)} TIMES THIS YEAR` : `LOCAL DEV TELLS AI "NO" ${int(w.corrections.total)} TIMES THIS YEAR`} />;
+export function NewsHook({ w, line }: CardProps) {
+  return <Broadcast settled w={w} value={int(w.swears.total || w.corrections.total)} headline={line ?? (w.swears.total ? `LOCAL DEV SWEARS AT AI ${int(w.swears.total)} TIMES THIS YEAR` : `LOCAL DEV TELLS AI "NO" ${int(w.corrections.total)} TIMES THIS YEAR`)} />;
 }
 
-export function NewsRetry({ w }: CardProps) {
-  return <Broadcast w={w} value={`${w.loop.retries}x`} headline={`AGENT RUNS SAME BROKEN COMMAND ${w.loop.retries} TIMES, EXPECTS DIFFERENT RESULT`} />;
+export function NewsRetry({ w, line }: CardProps) {
+  return <Broadcast w={w} value={`${w.loop.retries}x`} headline={line ?? `AGENT RUNS SAME BROKEN COMMAND ${w.loop.retries} TIMES, EXPECTS DIFFERENT RESULT`} />;
 }
 
-export function NewsNight({ w }: CardProps) {
+export function NewsNight({ w, line }: CardProps) {
   const late = w.lateNight ? clock(w.lateNight.time) : { time: "00:00", half: "AM" };
-  return <Broadcast w={w} value={late.time} headline={`DEV SPOTTED AWAKE AT ${late.time} ${late.half}, WITNESSES SAY "STILL PROMPTING"`} />;
+  return <Broadcast w={w} value={late.time} headline={line ?? `DEV SPOTTED AWAKE AT ${late.time} ${late.half}, WITNESSES SAY "STILL PROMPTING"`} />;
 }
 
-export function NewsCredit({ w }: CardProps) {
+export function NewsCredit({ w, line }: CardProps) {
   const top = w.git.coAuthors[0];
-  return <Broadcast w={w} value={int(top?.count ?? 0)} headline={`${(top?.name ?? "AI").toUpperCase()} TAKES CREDIT FOR ${int(top?.count ?? 0)} COMMITS. DEV "NOT SURPRISED"`} />;
+  return <Broadcast w={w} value={int(top?.count ?? 0)} headline={line ?? `${(top?.name ?? "AI").toUpperCase()} TAKES CREDIT FOR ${int(top?.count ?? 0)} COMMITS. DEV "NOT SURPRISED"`} />;
 }
 
-export function NewsHours({ w }: CardProps) {
-  return <Broadcast w={w} value={`${int(w.totals.hours)}h`} headline={`EXPERTS CONFIRM ${int(w.totals.hours)} HOURS WITH AI AGENTS IS "A LOT"`} />;
+export function NewsHours({ w, line }: CardProps) {
+  return <Broadcast w={w} value={`${int(w.totals.hours)}h`} headline={line ?? `EXPERTS CONFIRM ${int(w.totals.hours)} HOURS WITH AI AGENTS IS "A LOT"`} />;
 }

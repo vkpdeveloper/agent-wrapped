@@ -5,6 +5,8 @@
 // wrapped.json is a serialized Wrapped. The skill lets the agent edit
 // `persona` and `lessons` in it before rendering, so it is part of the CLI's API.
 
+import type { CardId } from "./video/plan.ts";
+
 export type AgentId = "claude" | "codex" | "opencode" | "pi" | "amp" | "cursor" | "grok" | "devin" | "muse";
 
 export const AGENT_NAMES: Record<AgentId, string> = {
@@ -151,6 +153,13 @@ export interface Wrapped {
   git: { commits: number; prs: number; prsCredited: number; coAuthors: Ranked[] };
   /** A one-line performance review per agent, written by the skill's agent. */
   reviews: { name: string; grade: string; line: string }[];
+  /**
+   * The skill's agent's joke for each card, from this user's own data, in place of the
+   * built-in one. `agent-wrapped lines` lists the cards of a cut and what each line is.
+   */
+  lines: Partial<Record<CardId, string>>;
+  /** The agents' group chat about the user, written by the skill's agent. Empty shows the built-in thread. */
+  chat: { from: AgentId | "me"; text: string }[];
 }
 
 /** A commit of the user's this year, and the agents named in its Co-authored-by trailers. */

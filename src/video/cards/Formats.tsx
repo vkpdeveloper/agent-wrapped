@@ -65,10 +65,10 @@ export function Rows({ children }: { children: ReactNode[] }) {
 
 // Rage: how often the user swore at their agent.
 
-export function RageHook({ w, field }: CardProps) {
+export function RageHook({ w, field, line }: CardProps) {
   const swears = w.swears;
   const every = Math.max(1, Math.round(w.totals.prompts / swears.total));
-  return <Stat field={field} settled top="I swore at my AI" value={int(swears.total)} tail="times this year." sticker={`1 in every ${int(every)} prompts.`} backdrop={<Art name="rage" scrim={field.bg} dim={0.6} />} />;
+  return <Stat field={field} settled top="I swore at my AI" value={int(swears.total)} tail="times this year." sticker={line ?? `1 in every ${int(every)} prompts.`} backdrop={<Art name="rage" scrim={field.bg} dim={0.6} />} />;
 }
 
 export function Swears({ w, field }: CardProps) {
@@ -89,15 +89,15 @@ export function Swears({ w, field }: CardProps) {
   );
 }
 
-export function RagePeak({ w, field }: CardProps) {
+export function RagePeak({ w, field, line }: CardProps) {
   const swears = w.swears;
   const month = swears.byMonth.indexOf(Math.max(...swears.byMonth));
   const hour = swears.byHour.indexOf(Math.max(...swears.byHour));
   const count = swears.byMonth[month] ?? 0;
-  return <Stat field={field} top="Peak rage" value={MONTHS[month] ?? ""} tail={`${int(count)} swears in one month.`} sticker={`Worst hour: ${hourLabel(hour)}.`} />;
+  return <Stat field={field} top="Peak rage" value={MONTHS[month] ?? ""} tail={`${int(count)} swears in one month.`} sticker={line ?? `Worst hour: ${hourLabel(hour)}.`} />;
 }
 
-export function RageWorst({ w, field }: CardProps) {
+export function RageWorst({ w, field, line }: CardProps) {
   const { square } = useLayout();
   const worst = w.swears.worst;
   if (!worst) return null;
@@ -108,24 +108,24 @@ export function RageWorst({ w, field }: CardProps) {
         <Bubble quote={{ text: censor(worst), date: w.to, time: "00:00", agent: w.agents[0]?.agent ?? "claude" }} index={0} field={field} meta={false} />
       </div>
       <Sticker at={STICKER_BEAT} rotate={2} field={field}>
-        {"My agent: “Understood.”"}
+        {line ?? "My agent: “Understood.”"}
       </Sticker>
     </Frame>
   );
 }
 
-export function Polite({ w, field }: CardProps) {
+export function Polite({ w, field, line }: CardProps) {
   const swears = w.swears;
   const top = swears.words[0];
   const against = top ? `and ${censor(top.name)} ${int(top.count)} times.` : `and swore ${int(swears.total)} times.`;
-  return <Stat field={field} top="I said please" value={int(swears.please)} count={swears.please} tail={against} sticker={swears.please > (top?.count ?? 0) ? "Polite, technically." : "Manners: optional."} />;
+  return <Stat field={field} top="I said please" value={int(swears.please)} count={swears.please} tail={against} sticker={line ?? (swears.please > (top?.count ?? 0) ? "Polite, technically." : "Manners: optional.")} />;
 }
 
 // Loop: the session where the agent would not listen.
 
-export function LoopHook({ w, field }: CardProps) {
+export function LoopHook({ w, field, line }: CardProps) {
   const loop = w.loop;
-  return <Stat field={field} settled top="I told my agent no" value={int(loop.corrections)} tail="times in one session." sticker="It still didn't listen." />;
+  return <Stat field={field} settled top="I told my agent no" value={int(loop.corrections)} tail="times in one session." sticker={line ?? "It still didn't listen."} />;
 }
 
 export function LoopLines({ w, field }: CardProps) {
@@ -143,31 +143,31 @@ export function LoopLines({ w, field }: CardProps) {
   );
 }
 
-export function Retries({ w, field }: CardProps) {
+export function Retries({ w, field, line }: CardProps) {
   const n = w.loop.retries;
-  return <Stat field={field} top="It ran the same broken command" value={`${int(n)} times`} tail="in one session." sticker="Expecting a different result." />;
+  return <Stat field={field} top="It ran the same broken command" value={`${int(n)} times`} tail="in one session." sticker={line ?? "Expecting a different result."} />;
 }
 
-export function Failed({ w, field }: CardProps) {
+export function Failed({ w, field, line }: CardProps) {
   const n = w.totals.failedCommands;
-  return <Stat field={field} top="My agents ran" value={int(n)} count={n} tail={`${plural(n, "command")} that failed.`} sticker="None of them were mine." />;
+  return <Stat field={field} top="My agents ran" value={int(n)} count={n} tail={`${plural(n, "command")} that failed.`} sticker={line ?? "None of them were mine."} />;
 }
 
 // Credit: who signed the commits.
 
-export function CreditHook({ w, field }: CardProps) {
+export function CreditHook({ w, field, line }: CardProps) {
   const git = w.git;
   const top = git.coAuthors[0];
-  return <Stat field={field} settled top="I made" value={int(git.commits)} tail="commits this year." sticker={top ? `${top.name} signed ${int(top.count)} of them.` : "All mine. Allegedly."} />;
+  return <Stat field={field} settled top="I made" value={int(git.commits)} tail="commits this year." sticker={line ?? (top ? `${top.name} signed ${int(top.count)} of them.` : "All mine. Allegedly.")} />;
 }
 
-export function Prs({ w, field }: CardProps) {
+export function Prs({ w, field, line }: CardProps) {
   const git = w.git;
   const name = git.coAuthors[0]?.name ?? "My agent";
-  return <Stat field={field} top="My agents opened" value={int(git.prs)} count={git.prs} tail="pull requests." sticker={`${name} took credit on ${int(git.prsCredited)}.`} />;
+  return <Stat field={field} top="My agents opened" value={int(git.prs)} count={git.prs} tail="pull requests." sticker={line ?? `${name} took credit on ${int(git.prsCredited)}.`} />;
 }
 
-export function CoAuthors({ w, field }: CardProps) {
+export function CoAuthors({ w, field, line }: CardProps) {
   const { square } = useLayout();
   const git = w.git;
   const rows = git.coAuthors.slice(0, ROW_BEATS.length - 1);
@@ -189,48 +189,48 @@ export function CoAuthors({ w, field }: CardProps) {
         ))}
       </Rows>
       <Sticker at={STICKER_BEAT} rotate={2} field={field}>
-        Never once asked for equity.
+        {line ?? "Never once asked for equity."}
       </Sticker>
     </Frame>
   );
 }
 
-export function Wrote({ w, field }: CardProps) {
+export function Wrote({ w, field, line }: CardProps) {
   const { linesAdded, linesRemoved } = w.totals;
-  return <Stat field={field} top="It wrote" value={`+${int(linesAdded)}`} tail={`lines. I deleted ${int(linesRemoved)}.`} sticker="Who's the senior dev now?" />;
+  return <Stat field={field} top="It wrote" value={`+${int(linesAdded)}`} tail={`lines. I deleted ${int(linesRemoved)}.`} sticker={line ?? "Who's the senior dev now?"} />;
 }
 
 // Grind: the hours.
 
-export function GrindHook({ w, field }: CardProps) {
+export function GrindHook({ w, field, line }: CardProps) {
   const { hours: h } = w.busiestDay;
-  return <Stat field={field} settled top="I worked" value={`${hours(h)} hours`} tail={`in one day, ${day(w.busiestDay.date)}.`} sticker={h > 24 ? "Parallel agents. Don't ask." : "One very long day."} backdrop={<Art name="grind" scrim={field.bg} dim={0.6} />} />;
+  return <Stat field={field} settled top="I worked" value={`${hours(h)} hours`} tail={`in one day, ${day(w.busiestDay.date)}.`} sticker={line ?? (h > 24 ? "Parallel agents. Don't ask." : "One very long day.")} backdrop={<Art name="grind" scrim={field.bg} dim={0.6} />} />;
 }
 
-export function Streak({ w, field }: CardProps) {
+export function Streak({ w, field, line }: CardProps) {
   const { days, from } = w.streak;
-  return <Stat field={field} top="My streak" value={`${int(days)} ${plural(days, "day")}`} tail="in a row. No days off." sticker={`Since ${day(from)}. Send help.`} />;
+  return <Stat field={field} top="My streak" value={`${int(days)} ${plural(days, "day")}`} tail="in a row. No days off." sticker={line ?? `Since ${day(from)}. Send help.`} />;
 }
 
-export function Longest({ w, field }: CardProps) {
-  return <Stat field={field} top="Longest session" value={`${hours(w.longestSession.hours)} hours`} tail="in one sitting." sticker="Bathroom breaks: unconfirmed." />;
+export function Longest({ w, field, line }: CardProps) {
+  return <Stat field={field} top="Longest session" value={`${hours(w.longestSession.hours)} hours`} tail="in one sitting." sticker={line ?? "Bathroom breaks: unconfirmed."} />;
 }
 
-export function Weekends({ w, field }: CardProps) {
+export function Weekends({ w, field, line }: CardProps) {
   const weekend = (w.byWeekday[0] ?? 0) + (w.byWeekday[6] ?? 0);
-  return <Stat field={field} top="On weekends" value={`${hours(weekend)} hours`} tail="with my agents." sticker="What's a weekend?" />;
+  return <Stat field={field} top="On weekends" value={`${hours(weekend)} hours`} tail="with my agents." sticker={line ?? "What's a weekend?"} />;
 }
 
 // Boss: the user as a manager of agents.
 
-export function BossHook({ w, field }: CardProps) {
+export function BossHook({ w, field, line }: CardProps) {
   const n = w.agents.length;
-  return <Stat field={field} settled top="I managed" value={int(n)} tail={`AI ${plural(n, "agent")} this year.`} sticker="I'm basically a CTO now." backdrop={<Art name="boss" scrim={field.bg} dim={0.6} />} />;
+  return <Stat field={field} settled top="I managed" value={int(n)} tail={`AI ${plural(n, "agent")} this year.`} sticker={line ?? "I'm basically a CTO now."} backdrop={<Art name="boss" scrim={field.bg} dim={0.6} />} />;
 }
 
-export function Delegated({ w, field }: CardProps) {
+export function Delegated({ w, field, line }: CardProps) {
   const n = w.totals.toolCalls;
-  return <Stat field={field} top="They made" value={int(n)} count={n} tail="tool calls for me." sticker="So I didn't have to." />;
+  return <Stat field={field} top="They made" value={int(n)} count={n} tail="tool calls for me." sticker={line ?? "So I didn't have to."} />;
 }
 
 export function Review({ w, field }: CardProps) {

@@ -11,8 +11,8 @@ import { CONVO_REPLY, CONVO_SEND, CONVO_TYPING } from "../plan.ts";
 import { Fit, display, useEnter, useLayout, type CardProps } from "../ui.tsx";
 import { AGENT_NAMES, type Exchange } from "../../types.ts";
 
-export function ConvoHook({ w, field }: CardProps) {
-  return <Stat field={field} top="I sent my AI" value={int(w.totals.prompts)} count={w.totals.prompts} tail="messages. It answered back." sticker="Real messages." />;
+export function ConvoHook({ w, field, line }: CardProps) {
+  return <Stat field={field} top="I sent my AI" value={int(w.totals.prompts)} count={w.totals.prompts} tail="messages. It answered back." sticker={line ?? "Real messages."} />;
 }
 
 /** "2026-09-22", "19:45" -> "Tue, Sep 22 · 7:45 PM" */

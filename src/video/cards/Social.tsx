@@ -76,7 +76,7 @@ export const lead = (square: boolean): CSSProperties => ({ ...display(800, 1), f
 
 // Settled on frame 0: X and Instagram use the first frame as the thumbnail, and
 // the first second decides whether anyone keeps watching.
-export function Hook({ w, field }: CardProps) {
+export function Hook({ w, field, line }: CardProps) {
   const { square, inner } = useLayout();
   const kick = useKick(0);
   const total = w.totals.hours;
@@ -88,16 +88,16 @@ export function Hook({ w, field }: CardProps) {
         <Fit text={hours(total)} width={inner} max={square ? 340 : 520} min={160} type={numerals(0.95)} style={{ color: field.hi }} />
       </div>
       <Fit text={`hours with AI agents in ${w.year}.`} width={inner} max={square ? 64 : 96} min={48} lines={2} type={display(800, 1)} />
-      {days >= 2 ? (
+      {line || days >= 2 ? (
         <Sticker at={STICKER_BEAT} field={field}>
-          {`That's ${int(days)} full days.`}
+          {line ?? `That's ${int(days)} full days.`}
         </Sticker>
       ) : null}
     </Frame>
   );
 }
 
-export function Ride({ w, field }: CardProps) {
+export function Ride({ w, field, line }: CardProps) {
   const { square, inner } = useLayout();
   const top = w.agents[0];
   const kick = useKick(1);
@@ -114,13 +114,13 @@ export function Ride({ w, field }: CardProps) {
         <div style={{ ...display(700, 1.1), fontSize: square ? 48 : 64, marginTop: 16 }}>{Math.round((top.sessions / total) * 100)}% of my sessions.</div>
       </Rise>
       <Sticker at={STICKER_BEAT} rotate={2} field={field}>
-        {others > 0 ? `Cheated on it with ${others} ${plural(others, "other")}.` : "Never cheated. Not once."}
+        {line ?? (others > 0 ? `Cheated on it with ${others} ${plural(others, "other")}.` : "Never cheated. Not once.")}
       </Sticker>
     </Frame>
   );
 }
 
-export function Night({ w, field }: CardProps) {
+export function Night({ w, field, line }: CardProps) {
   const { square, inner } = useLayout();
   const kick = useKick(1, 0.03);
   if (!w.lateNight) return null;
@@ -136,13 +136,13 @@ export function Night({ w, field }: CardProps) {
         <Fit text="still prompting." width={inner} max={square ? 64 : 96} min={48} type={display(800, 1)} />
       </Rise>
       <Sticker at={STICKER_BEAT} field={field}>
-        Sleep is a skill issue.
+        {line ?? "Sleep is a skill issue."}
       </Sticker>
     </Frame>
   );
 }
 
-export function No({ w, field }: CardProps) {
+export function No({ w, field, line }: CardProps) {
   const { square, width, height, inner } = useLayout();
   const { total, rate } = w.corrections;
   const counted = useCount(total, beats(1), beats(3));
@@ -161,9 +161,9 @@ export function No({ w, field }: CardProps) {
         <Fit text={int(total)} show={int(counted)} width={inner * 0.72} max={square ? 300 : 440} min={140} type={numerals(0.95)} style={{ width: "auto", color: field.hi }} />
         <div style={lead(square)}>{plural(total, "time")}.</div>
       </div>
-      {every > 0 ? (
+      {line || every > 0 ? (
         <Sticker at={STICKER_BEAT} rotate={2} field={field}>
-          {`1 in every ${int(every)} prompts.`}
+          {line ?? `1 in every ${int(every)} prompts.`}
         </Sticker>
       ) : null}
     </Frame>
@@ -210,14 +210,14 @@ export function Reveal({ w, field }: CardProps) {
 }
 
 // A question, not a sign-off: people answer with their own, which is the point.
-export function Ask({ field, question = "What's yours?" }: CardProps & { question?: string }) {
+export function Ask({ field, line, question = "What's yours?" }: CardProps & { question?: string }) {
   const { square, inner, pad } = useLayout();
   const kick = useKick(1, 0.05);
   return (
     <Card field={field}>
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center" }}>
         <Slam at={SLAM_BEAT} from={2.4} style={{ scale: String(kick), transformOrigin: "0% 50%" }}>
-          <Fit text={question} width={inner} max={square ? 200 : 260} min={100} lines={2} type={display(800, 0.92)} style={{ color: field.hi }} />
+          <Fit text={line ?? question} width={inner} max={square ? 200 : 260} min={100} lines={2} type={display(800, 0.92)} style={{ color: field.hi }} />
         </Slam>
         <Rise delay={beats(3)}>
           <div style={{ ...display(700, 1.1), fontSize: square ? 48 : 64, marginTop: 20 }}>Make your own in one line.</div>

@@ -27,7 +27,7 @@ function reached(byMonth: number[], goal: number): string | undefined {
 }
 
 // The clock is already running on frame 0, a minute of run time a second.
-export function SrHook({ w, field }: CardProps) {
+export function SrHook({ w, field, line }: CardProps) {
   const { square, inner } = useLayout();
   const frame = useCurrentFrame();
   const kick = useKick(0, 0.02);
@@ -39,7 +39,7 @@ export function SrHook({ w, field }: CardProps) {
         <Fit text={timer(w.totals.hours + frame / 60 / 30)} width={inner} max={square ? 230 : 300} min={100} type={{ ...numerals(1), fontFamily: MONO, fontWeight: 800, letterSpacing: "-0.04em" }} style={{ color: field.hi }} />
       </div>
       <Sticker at={4} field={field}>
-        No resets. No sleep.
+        {line ?? "No resets. No sleep."}
       </Sticker>
     </Frame>
   );
@@ -73,7 +73,7 @@ export function Splits({ w, field }: CardProps) {
   );
 }
 
-export function Skips({ w, field }: CardProps) {
+export function Skips({ w, field, line }: CardProps) {
   const { square } = useLayout();
   const weekend = Math.round((w.byWeekday[0] ?? 0) + (w.byWeekday[6] ?? 0));
   const skips = [
@@ -94,13 +94,13 @@ export function Skips({ w, field }: CardProps) {
         ))}
       </Rows>
       <Sticker at={SLAM_BEAT + 3} rotate={2} field={field}>
-        Glitchless? Never heard of it.
+        {line ?? "Glitchless? Never heard of it."}
       </Sticker>
     </Frame>
   );
 }
 
-export function Deaths({ w, field }: CardProps) {
+export function Deaths({ w, field, line }: CardProps) {
   const n = w.totals.failedCommands;
-  return <Stat field={field} top="Deaths" value={int(n)} count={n} tail="failed commands. Resets: 0." sticker="Skill issue? Never." />;
+  return <Stat field={field} top="Deaths" value={int(n)} count={n} tail="failed commands. Resets: 0." sticker={line ?? "Skill issue? Never."} />;
 }

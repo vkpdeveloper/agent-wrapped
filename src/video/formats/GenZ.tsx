@@ -49,7 +49,7 @@ function Caption({ text, field, settled = false }: { text: string; field: CardPr
 }
 
 const caption = (line: (w: CardProps["w"]) => string, settled = false) => {
-  return ({ w, field }: CardProps) => <Caption text={line(w)} field={field} settled={settled} />;
+  return ({ w, field, line: written }: CardProps) => <Caption text={written ?? line(w)} field={field} settled={settled} />;
 };
 
 export const ZPov = caption((w) => `pov: you spent ${int(w.totals.hours)} hours talking to ai`, true);

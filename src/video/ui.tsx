@@ -10,6 +10,8 @@ export const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
 export interface CardProps {
   w: Wrapped;
   field: Field;
+  /** The skill's agent's joke for this card, from `lines`, in place of the built-in one. */
+  line?: string;
 }
 
 /** On with --blur-projects. */

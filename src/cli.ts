@@ -8,7 +8,7 @@ import { commits } from "./git.ts";
 import { redactDeep } from "./redact.ts";
 import { wrap } from "./stats.ts";
 import { AGENT_NAMES, type AgentId, type Commit, type SessionSummary, type Wrapped } from "./types.ts";
-import { CUT_NAMES, type Cut } from "./video/plan.ts";
+import { CUT_NAMES, LINES, planCards, type Cut } from "./video/plan.ts";
 
 const HELP = `agent-wrapped: your year with coding agents, as a Wrapped video
 
@@ -16,6 +16,7 @@ Usage
   agent-wrapped [options]                  Read your sessions and render the video
   agent-wrapped stats [options]            Write the stats as JSON (edit lessons and persona there)
   agent-wrapped render <wrapped.json>      Render a video from that JSON
+  agent-wrapped lines <wrapped.json>       The jokes a --cut takes from \`lines\` in that JSON, card by card
   agent-wrapped agents                     Agents with local history, most sessions first
   agent-wrapped sessions [-o file]         This machine's sessions as JSON, for --add on another machine
 
@@ -98,12 +99,18 @@ if (command === "agents") {
 }
 
 if (command === "render") {
-  const path = positionals[1];
-  if (!path) fail("render expects a wrapped.json path, from `agent-wrapped stats`");
-  // Files from older versions still render: what they lack is empty, and its cards are skipped.
-  const wrapped: Wrapped = { ...wrap([], { year, name: "", home: homedir() }), ...(await Bun.file(path).json()) };
-  if (!Array.isArray(wrapped.agents) || !wrapped.totals) fail(`${path} is not a wrapped.json from \`agent-wrapped stats\``);
+  const wrapped = await readWrapped(positionals[1], "render");
   await render(wrapped, resolve(values.out ?? `wrapped-${wrapped.year}.mp4`));
+  process.exit(0);
+}
+
+if (command === "lines") {
+  const wrapped = await readWrapped(positionals[1], "lines");
+  for (const { id } of planCards(wrapped, cut)) {
+    const slot = LINES[id];
+    if (slot) console.log(`${id.padEnd(16)} ${slot}`);
+  }
+  if (cut === "chat") console.log(`${"chat".padEnd(16)} the whole thread, in \`chat\`: up to 10 messages between their agents (and "me")`);
   process.exit(0);
 }
 
@@ -200,6 +207,14 @@ async function defaultName(): Promise<string> {
 function day(ms: number): string {
   const d = new Date(ms);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+async function readWrapped(path: string | undefined, command: string): Promise<Wrapped> {
+  if (!path) fail(`${command} expects a wrapped.json path, from \`agent-wrapped stats\``);
+  // Files from older versions still render: what they lack is empty, and its cards are skipped.
+  const wrapped: Wrapped = { ...wrap([], { year, name: "", home: homedir() }), ...(await Bun.file(path).json()) };
+  if (!Array.isArray(wrapped.agents) || !wrapped.totals) fail(`${path} is not a wrapped.json from \`agent-wrapped stats\``);
+  return wrapped;
 }
 
 function isCut(name: string): name is Cut {

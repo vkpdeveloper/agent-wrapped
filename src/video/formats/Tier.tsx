@@ -19,8 +19,8 @@ const TIERS = [
 const TIER_START = 1;
 const TIER_STEP = 0.5;
 
-export function TierHook({ w, field }: CardProps) {
-  return <Stat field={field} settled top="Ranking every AI agent I used" value={int(w.agents.length)} tail={w.agents.length === 1 ? "agent. Easy." : "agents."} sticker="By sessions. No mercy." />;
+export function TierHook({ w, field, line }: CardProps) {
+  return <Stat field={field} settled top="Ranking every AI agent I used" value={int(w.agents.length)} tail={w.agents.length === 1 ? "agent. Easy." : "agents."} sticker={line ?? "By sessions. No mercy."} />;
 }
 
 export function TierList({ w, field }: CardProps) {

@@ -35,9 +35,9 @@ function Title({ text, sub, settled = false, gold = false }: { text: string; sub
   );
 }
 
-export const TrailerWorld = () => <Title settled text="IN A WORLD WHERE AGENTS WRITE THE CODE" />;
-export const TrailerOne = () => <Title text="ONE DEVELOPER" />;
-export const TrailerHours = ({ w }: CardProps) => <Title text={`${int(w.totals.hours)} HOURS`} />;
-export const TrailerSessions = ({ w }: CardProps) => <Title text={`${int(w.totals.sessions)} SESSIONS`} />;
-export const TrailerNo = ({ w }: CardProps) => <Title text={`${int(w.corrections.total)} TIMES THE ANSWER WAS NO`} />;
-export const TrailerTitle = ({ w }: CardProps) => <Title gold text={(w.persona.title.trim() || "THE AGENT WRANGLER").toUpperCase()} sub={'COMING NEVER: "DONE."'} />;
+export const TrailerWorld = ({ line }: CardProps) => <Title settled text={line ?? "IN A WORLD WHERE AGENTS WRITE THE CODE"} />;
+export const TrailerOne = ({ line }: CardProps) => <Title text={line ?? "ONE DEVELOPER"} />;
+export const TrailerHours = ({ w, line }: CardProps) => <Title text={line ?? `${int(w.totals.hours)} HOURS`} />;
+export const TrailerSessions = ({ w, line }: CardProps) => <Title text={line ?? `${int(w.totals.sessions)} SESSIONS`} />;
+export const TrailerNo = ({ w, line }: CardProps) => <Title text={line ?? `${int(w.corrections.total)} TIMES THE ANSWER WAS NO`} />;
+export const TrailerTitle = ({ w, line }: CardProps) => <Title gold text={(w.persona.title.trim() || "THE AGENT WRANGLER").toUpperCase()} sub={line ?? 'COMING NEVER: "DONE."'} />;

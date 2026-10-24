@@ -24,9 +24,10 @@ function lines(w: CardProps["w"]): string[] {
   ];
 }
 
-export function Post({ w, field }: CardProps) {
+export function Post({ w, field, line }: CardProps) {
   const { square, pad, inner } = useLayout();
-  const post = lines(w);
+  // The skill's agent writes the whole post, a line per row; the last is the big sign-off.
+  const post = line ? line.split("\n").filter(Boolean).slice(0, 6) : lines(w);
   const likes = useCount(w.totals.tokens / 1_000_000, (post.length - 1) * LINE_BEATS * BEAT, BEAT * 4);
   const name = w.name || "Me";
   const text = square ? 34 : 46;

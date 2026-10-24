@@ -130,7 +130,39 @@ Only for the formats they picked:
 Save the edited JSON. Lessons only show in `full`, quotes in `full` and
 `social`, and `convo` in its own cut, so skip the steps a picked format does not use.
 
-## 5. Render
+## 5. Write the jokes
+
+Every format but `full` is a meme, and the jokes on it should be about this
+user, not anyone's. For each format they picked, list the cards that take a
+joke and what each shows:
+
+```sh
+<skill-dir>/wrapped.sh lines "${TMPDIR:-/tmp}/wrapped.json" --cut <name>
+```
+
+Write one into `lines`, keyed by card id (`"lines": { "rageHook": "..." }`),
+within each card's limit. A card left out keeps its built-in joke, so skip
+any you cannot beat.
+
+- Ground every joke in their data: a number from the JSON, something they
+  typed (`promptSamples`, `corrections.samples`), something an agent said back
+  (`exchangeSamples`), their hours, their swear words, which agent they cheat
+  on. A line that fits every user is a miss.
+- Write like a meme page, not a report: roast them and their agents, be
+  specific and a little unhinged, end on the punch. Use their own slang and
+  language (Hinglish stays Hinglish).
+- Never repeat what the card already says: a sticker under "350 times"
+  adds a new fact or the punch, not the 350 again.
+- Never invent or change a number; the video prints what you write.
+- No project, client or person names, no secrets, nothing they would not
+  post. Swears are censored on screen anyway.
+
+For `chat`, also write `chat`: the whole group chat, 8 to 10 messages, each
+`{ "from": "<agent id from agents>" | "me", "text": "..." }`, at most 60
+characters each. Their actual top agents gossip about them using real
+numbers and habits, and it ends on one message from `"me"`.
+
+## 6. Render
 
 ```sh
 <skill-dir>/wrapped.sh render "${TMPDIR:-/tmp}/wrapped.json" -o ~/Desktop/agent-wrapped-<year>.mp4

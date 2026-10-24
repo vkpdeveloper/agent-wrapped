@@ -11,7 +11,7 @@ import { Punch } from "../cards/Social.tsx";
 /** A line prints every half beat, as the soundtrack clicks. */
 const LINE = BEAT / 2;
 
-export function Receipt({ w, field }: CardProps) {
+export function Receipt({ w, field, line }: CardProps) {
   const { square, width, height } = useLayout();
   const frame = useCurrentFrame();
   const rows: ([string, string] | string)[] = [
@@ -33,8 +33,7 @@ export function Receipt({ w, field }: CardProps) {
     ["TOTAL", (w.persona.title.trim() || "1 AGENT WRANGLER").toUpperCase()],
     "",
     "BARCODE",
-    "THANK YOU FOR PROMPTING",
-    "NO REFUNDS. NO SLEEP.",
+    ...(line ? line.toUpperCase().split("\n").slice(0, 2) : ["THANK YOU FOR PROMPTING", "NO REFUNDS. NO SLEEP."]),
   ];
   const printed = Math.min(rows.length, Math.floor(frame / LINE) + 1);
   const size = square ? 30 : 40;

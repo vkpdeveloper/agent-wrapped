@@ -38,29 +38,29 @@ function Profile({ w, agent, status, line, field }: { w: CardProps["w"]; agent: 
   );
 }
 
-export function DateHook({ w, field }: CardProps) {
-  return <Stat field={field} settled top="My relationship status with AI:" value="It's complicated." sticker={`${w.agents.length} agents. 1 me.`} backdrop={<Art name="dating" scrim={field.bg} dim={0.5} />} />;
+export function DateHook({ w, field, line }: CardProps) {
+  return <Stat field={field} settled top="My relationship status with AI:" value="It's complicated." sticker={line ?? `${w.agents.length} agents. 1 me.`} backdrop={<Art name="dating" scrim={field.bg} dim={0.5} />} />;
 }
 
-export function DateMain({ w, field }: CardProps) {
+export function DateMain({ w, field, line }: CardProps) {
   const agent = w.agents[0];
   if (!agent) return null;
-  return <Profile w={w} agent={agent} field={field} status="The main one" line="We're exclusive. (We're not.)" />;
+  return <Profile w={w} agent={agent} field={field} status="The main one" line={line ?? "We're exclusive. (We're not.)"} />;
 }
 
-export function DateEx({ w, field }: CardProps) {
+export function DateEx({ w, field, line }: CardProps) {
   const agent = w.agents[1];
   if (!agent) return null;
   const signed = w.git.coAuthors.some((co) => agent.name.toLowerCase().startsWith(co.name.toLowerCase()));
-  return <Profile w={w} agent={agent} field={field} status="The ex" line={signed ? "Still signs my commits. Weird." : "We still talk. Sometimes."} />;
+  return <Profile w={w} agent={agent} field={field} status="The ex" line={line ?? (signed ? "Still signs my commits. Weird." : "We still talk. Sometimes.")} />;
 }
 
-export function DateTalking({ w, field }: CardProps) {
+export function DateTalking({ w, field, line }: CardProps) {
   const agent = w.agents.at(-1);
   if (!agent || w.agents.length < 3) return null;
-  return <Profile w={w} agent={agent} field={field} status="Talking stage" line={`${int(agent.sessions)} ${agent.sessions === 1 ? "date" : "dates"}. Left on read.`} />;
+  return <Profile w={w} agent={agent} field={field} status="Talking stage" line={line ?? `${int(agent.sessions)} ${agent.sessions === 1 ? "date" : "dates"}. Left on read.`} />;
 }
 
-export function DateFlags({ w, field }: CardProps) {
-  return <Stat field={field} top="Red flags" value={int(w.corrections.total)} count={w.corrections.total} tail="times I told them no." sticker="Turns out I'm the toxic one." />;
+export function DateFlags({ w, field, line }: CardProps) {
+  return <Stat field={field} top="Red flags" value={int(w.corrections.total)} count={w.corrections.total} tail="times I told them no." sticker={line ?? "Turns out I'm the toxic one."} />;
 }

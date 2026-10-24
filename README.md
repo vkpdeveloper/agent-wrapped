@@ -45,6 +45,7 @@ and swears censored on screen.
 - **MP4** in vertical (1080x1920) or square (1080x1080)
 - **Music per format**: rage trap for rage, phonk for genz, chiptune for the speedrun, elevator bossa for the receipt, all on the beat of the cuts, with a vine boom, air horn or stamp on every hit
 - **Your own words**: your agent picks the lines you typed that sound most like you, and the funniest things your agents said back, in any language (Hindi included)
+- **Jokes about you**: your agent writes every format's punchlines from your own numbers, prompts and its replies, so no two videos are the same
 - **Lessons and a persona**: the rules that would have saved you the trouble, and who that makes you
 - **Every agent**, with its real logo: Claude Code, Codex, OpenCode, Pi, Amp, Cursor, Grok Build, and the threads T3 Code runs with them (Devin and Muse too)
 - **Private**: nothing is uploaded, secrets show up as `********`, and `--blur-projects` hides project names
