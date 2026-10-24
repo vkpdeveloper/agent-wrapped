@@ -1,5 +1,5 @@
-import type { CSSProperties, ReactNode } from "react";
-import { AbsoluteFill, Easing, interpolate, spring, useCurrentFrame, useVideoConfig } from "remotion";
+import { createContext, useContext, type CSSProperties, type ReactNode } from "react";
+import { AbsoluteFill, Easing, interpolate, random, spring, useCurrentFrame, useVideoConfig } from "remotion";
 import type { Wrapped } from "../types.ts";
 import { fitSize, type Type } from "./fit.ts";
 import { DISPLAY } from "./fonts.ts";
@@ -10,6 +10,21 @@ export const easeOut = Easing.bezier(0.16, 1, 0.3, 1);
 export interface CardProps {
   w: Wrapped;
   field: Field;
+}
+
+/** On with --blur-projects. */
+export const BlurProjects = createContext(false);
+
+/**
+ * Project names and session titles. With BlurProjects on, each letter becomes a
+ * stand-in that does not depend on the real one, then it is blurred, so nothing
+ * in the frame can be unblurred back into the name. Only the length survives.
+ */
+export function usePrivate(text: string): { text: string; style?: CSSProperties } {
+  if (!useContext(BlurProjects)) return { text };
+  let i = 0;
+  const stand = text.replace(/[\p{L}\p{N}]/gu, () => String.fromCharCode(97 + Math.floor(random(`private-${i++}`) * 26)));
+  return { text: stand, style: { filter: "blur(0.3em)" } };
 }
 
 export function useLayout() {

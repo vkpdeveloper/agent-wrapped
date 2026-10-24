@@ -1,7 +1,7 @@
 import { Disc } from "../Shapes.tsx";
 import { day, hours, int, plural } from "../format.ts";
 import { type Field } from "../theme.ts";
-import { Card, Clip, Rise, numerals, useCount, useLayout, useProgress, type CardProps } from "../ui.tsx";
+import { Card, Clip, Rise, numerals, useCount, useLayout, usePrivate, useProgress, type CardProps } from "../ui.tsx";
 
 interface Best {
   label: string;
@@ -9,6 +9,8 @@ interface Best {
   format: (n: number) => string;
   unit: string;
   detail: string;
+  /** A session title or project after the detail, blurred with --blur-projects. */
+  name?: string;
 }
 
 export function Records({ w, field }: CardProps) {
@@ -20,7 +22,8 @@ export function Records({ w, field }: CardProps) {
       value: session.hours,
       format: hours,
       unit: plural(session.hours, "hour"),
-      detail: [day(session.date), session.title || session.project].filter(Boolean).join(": "),
+      detail: day(session.date),
+      name: session.title || session.project,
     },
     {
       label: "Longest streak",
@@ -53,6 +56,7 @@ function RecordBlock({ record, field, delay, first }: { record: Best; field: Fie
   const { square } = useLayout();
   const counted = useCount(record.value, delay + 4, 32);
   const rule = useProgress(delay, 24);
+  const name = usePrivate(record.name ?? "");
   return (
     <div style={{ paddingTop: first ? 0 : square ? 18 : 40 }}>
       {first ? null : <div style={{ height: 6, width: `${rule * 100}%`, background: field.ink, marginBottom: square ? 18 : 40 }} />}
@@ -62,7 +66,10 @@ function RecordBlock({ record, field, delay, first }: { record: Best; field: Fie
           <div style={{ ...numerals(0.95), fontSize: square ? 128 : 240, color: field.hi }}>{record.format(counted)}</div>
           <div style={{ fontSize: square ? 44 : 56, fontWeight: 800, letterSpacing: "-0.02em" }}>{record.unit}</div>
         </div>
-        <Clip style={{ fontSize: square ? 38 : 44, fontWeight: 600, marginTop: 6 }}>{record.detail}</Clip>
+        <Clip style={{ fontSize: square ? 38 : 44, fontWeight: 600, marginTop: 6 }}>
+          {record.detail}
+          {name.text ? <span style={name.style}>: {name.text}</span> : null}
+        </Clip>
       </Rise>
     </div>
   );

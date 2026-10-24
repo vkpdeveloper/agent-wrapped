@@ -2,14 +2,14 @@ import { Stripes } from "../Shapes.tsx";
 import { fitSize } from "../fit.ts";
 import { hours, int, plural } from "../format.ts";
 import { mix, type Field } from "../theme.ts";
-import { Bar, Card, Clip, Fit, Rise, display, numerals, useCount, useLayout, type CardProps } from "../ui.tsx";
+import { Bar, Card, Clip, Fit, Rise, display, numerals, useCount, useLayout, usePrivate, type CardProps } from "../ui.tsx";
 
 export function Projects({ w, field }: CardProps) {
   const { square, inner } = useLayout();
   const [top, ...rest] = w.projects;
   const topHours = useCount(top?.hours ?? 0, 12, 36);
+  const { text: name, style: blur } = usePrivate(top?.name || "Unnamed");
   if (!top) return null;
-  const name = top.name || "Unnamed";
   // Stay on one line while the name is still big; only long names wrap (at hyphens, usually).
   const max = square ? 130 : 190;
   const oneLine = fitSize(name, { width: inner, max, min: max * 0.6, type: display(800, 1.05) }).fits;
@@ -19,7 +19,7 @@ export function Projects({ w, field }: CardProps) {
     <Card field={field} eyebrow="Top projects" shapes={<Stripes field={field} x={square ? 0.92 : 0.95} y={square ? 0.1 : 0.08} size={square ? 380 : 560} />}>
       <Rise delay={4} style={{ marginTop: square ? 28 : 72 }}>
         <div style={{ fontSize: square ? 48 : 60, fontWeight: 700, letterSpacing: "-0.02em" }}>Your #1 project</div>
-        <Fit text={name} width={inner} max={max} min={56} lines={oneLine ? 1 : 2} type={display(800, 1.05)} style={{ marginTop: 4, overflowWrap: "anywhere" }} />
+        <Fit text={name} width={inner} max={max} min={56} lines={oneLine ? 1 : 2} type={display(800, 1.05)} style={{ marginTop: 4, overflowWrap: "anywhere", ...blur }} />
         <div style={{ display: "flex", alignItems: "baseline", gap: 18, marginTop: square ? 4 : 10 }}>
           <div style={{ ...numerals(1), fontSize: square ? 96 : 150, color: field.hi }}>{hours(topHours)}</div>
           <div style={{ fontSize: square ? 44 : 56, fontWeight: 800, letterSpacing: "-0.02em" }}>
@@ -45,11 +45,12 @@ export function Projects({ w, field }: CardProps) {
 
 function ProjectRow({ rank, name, hours: h, fraction, field, delay }: { rank: number; name: string; hours: number; fraction: number; field: Field; delay: number }) {
   const { square } = useLayout();
+  const shown = usePrivate(name);
   return (
     <Rise delay={delay} distance={50}>
       <div style={{ display: "flex", alignItems: "baseline", gap: square ? 20 : 28 }}>
         <div style={{ ...numerals(1), fontSize: square ? 52 : 72, width: square ? 34 : 46 }}>{rank}</div>
-        <Clip style={{ flex: 1, fontSize: square ? 44 : 56, fontWeight: 700, letterSpacing: "-0.02em" }}>{name}</Clip>
+        <Clip style={{ flex: 1, fontSize: square ? 44 : 56, fontWeight: 700, letterSpacing: "-0.02em", ...shown.style }}>{shown.text}</Clip>
         <div style={{ ...numerals(1), fontSize: square ? 48 : 64 }}>
           {hours(h)}
           <span style={{ fontSize: square ? 36 : 40, fontWeight: 700, marginLeft: 8 }}>h</span>

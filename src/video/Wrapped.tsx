@@ -1,5 +1,5 @@
 import { useMemo, type ComponentType, type ReactNode } from "react";
-import { AbsoluteFill, Easing, interpolate, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
+import { AbsoluteFill, Easing, Html5Audio, interpolate, Sequence, useCurrentFrame, useVideoConfig } from "remotion";
 import { Agents } from "./cards/Agents.tsx";
 import { Clock } from "./cards/Clock.tsx";
 import { Corrections } from "./cards/Corrections.tsx";
@@ -8,12 +8,14 @@ import { Intro } from "./cards/Intro.tsx";
 import { Lessons } from "./cards/Lessons.tsx";
 import { Persona } from "./cards/Persona.tsx";
 import { Projects } from "./cards/Projects.tsx";
+import { Quotes } from "./cards/Quotes.tsx";
 import { Records } from "./cards/Records.tsx";
+import { Ask, Hook, Night, No, Reveal, Ride, Said } from "./cards/Social.tsx";
 import { Tools } from "./cards/Tools.tsx";
 import { useFonts } from "./fonts.ts";
 import { planCards, TRANSITION, type CardId, type WrappedProps } from "./plan.ts";
 import { PALETTES, type Field, type Palette } from "./theme.ts";
-import type { CardProps } from "./ui.tsx";
+import { BlurProjects, type CardProps } from "./ui.tsx";
 
 const CARDS: Record<CardId, ComponentType<CardProps>> = {
   intro: Intro,
@@ -24,8 +26,16 @@ const CARDS: Record<CardId, ComponentType<CardProps>> = {
   records: Records,
   tools: Tools,
   corrections: Corrections,
+  quotes: Quotes,
   lessons: Lessons,
   persona: Persona,
+  hook: Hook,
+  ride: Ride,
+  night: Night,
+  no: No,
+  said: Said,
+  reveal: Reveal,
+  ask: Ask,
 };
 
 // The middle cards walk this order; intro is always dark and the persona always
@@ -38,26 +48,29 @@ function fieldsFor(palette: Palette, count: number): Field[] {
   return names.map((name) => palette[name]);
 }
 
-export function WrappedVideo({ wrapped }: WrappedProps) {
+export function WrappedVideo({ wrapped, cut, blurProjects = false, soundtrack }: WrappedProps) {
   const ready = useFonts();
-  const cards = useMemo(() => planCards(wrapped), [wrapped]);
+  const cards = useMemo(() => planCards(wrapped, cut), [wrapped, cut]);
   const palette = PALETTES[wrapped.agents[0]?.agent ?? "claude"];
   const fields = fieldsFor(palette, cards.length);
   if (!ready) return null;
   return (
-    <AbsoluteFill style={{ background: palette.deep.bg }}>
-      {cards.map((card, i) => {
-        const Card = CARDS[card.id];
-        const field = fields[i] ?? palette.deep;
-        return (
-          <Sequence key={card.id} name={card.id} from={card.from} durationInFrames={card.duration}>
-            <Slot index={i} duration={card.duration} last={i === cards.length - 1}>
-              <Card w={wrapped} field={field} />
-            </Slot>
-          </Sequence>
-        );
-      })}
-    </AbsoluteFill>
+    <BlurProjects.Provider value={blurProjects}>
+      <AbsoluteFill style={{ background: palette.deep.bg }}>
+        {soundtrack ? <Html5Audio src={soundtrack} /> : null}
+        {cards.map((card, i) => {
+          const Card = CARDS[card.id];
+          const field = fields[i] ?? palette.deep;
+          return (
+            <Sequence key={card.id} name={card.id} from={card.from} durationInFrames={card.duration}>
+              <Slot index={i} duration={card.duration} last={i === cards.length - 1}>
+                <Card w={wrapped} field={field} />
+              </Slot>
+            </Sequence>
+          );
+        })}
+      </AbsoluteFill>
+    </BlurProjects.Provider>
   );
 }
 

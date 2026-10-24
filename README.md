@@ -1,8 +1,9 @@
 # agent-wrapped
 
 Your year with coding agents, as a Wrapped video. Hours, your #1 agent, top
-projects, your 3am sessions, how often you told your agent "no", and the rules
-that would have saved you the trouble.
+projects, your 3am sessions, how often you told your agent "no", the rules
+that would have saved you the trouble, and your best lines, picked by your own
+agent from what you typed. It comes with a soundtrack generated to its cuts.
 
 ## Install
 
@@ -14,6 +15,7 @@ Then ask your agent:
 
 - "make my agent wrapped"
 - "make a square agent wrapped for 2025"
+- "make my agent wrapped, but blur my project names"
 
 The skill downloads the right binary for your machine on first use and keeps it
 updated. Works on macOS, Linux and Windows.
@@ -36,8 +38,10 @@ curl -fsSL https://raw.githubusercontent.com/vkpdeveloper/agent-wrapped/main/ski
 agent-wrapped agents                     # agents found, most sessions first
 agent-wrapped -o wrapped.mp4             # this year, vertical
 agent-wrapped --year 2025 --format square
-agent-wrapped stats -o wrapped.json      # the numbers, to edit lessons or persona
+agent-wrapped stats -o wrapped.json      # the numbers, to edit lessons, quotes or persona
 agent-wrapped render wrapped.json -o wrapped.mp4
+agent-wrapped render wrapped.json --blur-projects
+agent-wrapped render wrapped.json --social   # 30s first-person cut to post
 
 ssh laptop agent-wrapped sessions > laptop.json   # another machine's sessions
 agent-wrapped --add laptop.json                   # counted together, duplicates once

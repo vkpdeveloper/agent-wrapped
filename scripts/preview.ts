@@ -1,7 +1,7 @@
 // Renders the video from source for a look: a still of every card (PNG) and,
 // with --video, the full MP4. Output goes to /tmp/wrapped-preview.
 //
-//   bun scripts/preview.ts [wrapped.json] [--format vertical|square|both] [--video] [--thin] [--transitions]
+//   bun scripts/preview.ts [wrapped.json] [--format vertical|square|both] [--video] [--thin] [--transitions] [--social]
 //
 // --thin derives a sparse Wrapped from the input (one agent, no late night, no
 // tokens or lessons, two projects with very long names) to check the edge cases.
@@ -25,6 +25,7 @@ const { values, positionals } = parseArgs({
     video: { type: "boolean", default: false },
     thin: { type: "boolean", default: false },
     transitions: { type: "boolean", default: false },
+    social: { type: "boolean", default: false },
   },
 });
 
@@ -55,16 +56,17 @@ const input = positionals[0] ?? join(root, "fixtures", "wrapped.json");
 const source: Wrapped = await Bun.file(input).json();
 const wrapped = values.thin ? thin(source) : source;
 const formats: Format[] = values.format === "both" ? ["vertical", "square"] : [values.format as Format];
-const tag = values.thin ? "thin-" : "";
+const cut = values.social ? "social" : "full";
+const tag = `${values.thin ? "thin-" : ""}${values.social ? "social-" : ""}`;
 
 await mkdir(OUT, { recursive: true });
 const serveUrl = await bundle({ entryPoint: join(root, "src", "video", "entry.ts") });
 const browser = await openBrowser("chrome");
 
 for (const format of formats) {
-  const inputProps: WrappedProps = { wrapped, format };
+  const inputProps: WrappedProps = { wrapped, format, cut };
   const composition = await selectComposition({ serveUrl, id: COMPOSITION_ID, inputProps, puppeteerInstance: browser });
-  const cards = planCards(wrapped);
+  const cards = planCards(wrapped, cut);
   for (const [i, card] of cards.entries()) {
     // Just before the next card starts wiping in, when every animation has landed.
     const shots = [{ frame: card.from + card.duration - TRANSITION - 2, suffix: "" }];
@@ -83,7 +85,7 @@ if (values.video) {
     const output = join(OUT, `${tag}${format}.mp4`);
     const started = performance.now();
     let last = -1;
-    await renderVideo(wrapped, format, output, (progress) => {
+    await renderVideo(wrapped, { format, cut, blurProjects: false }, output, (progress) => {
       const percent = Math.floor(progress * 10) * 10;
       if (percent !== last) process.stdout.write(`${percent}% `);
       last = percent;

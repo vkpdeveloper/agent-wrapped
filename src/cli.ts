@@ -25,6 +25,8 @@ Options
       --year <n>         Default: this year.
       --name <text>      Name on the first card. Default: your git user.name.
       --format <name>    vertical (1080x1920, default) or square (1080x1080).
+      --blur-projects    Blur project names and session titles in the video.
+      --social           Short first-person cut to post: no projects, tools or models.
       --add <file>       Also count another machine's \`agent-wrapped sessions\` output. Repeatable.
   -v, --version
   -h, --help`;
@@ -36,6 +38,8 @@ const { values, positionals } = parseArgs({
     year: { type: "string" },
     name: { type: "string" },
     format: { type: "string" },
+    "blur-projects": { type: "boolean" },
+    social: { type: "boolean" },
     add: { type: "string", multiple: true },
     help: { type: "boolean", short: "h" },
     version: { type: "boolean", short: "v" },
@@ -71,7 +75,8 @@ if (command === "agents") {
 if (command === "render") {
   const path = positionals[1];
   if (!path) fail("render expects a wrapped.json path, from `agent-wrapped stats`");
-  const wrapped = (await Bun.file(path).json()) as Wrapped;
+  // Files from before quotes existed still render, without the quotes card.
+  const wrapped: Wrapped = { promptSamples: [], quotes: { title: "", lines: [] }, ...(await Bun.file(path).json()) };
   if (!Array.isArray(wrapped.agents) || !wrapped.totals) fail(`${path} is not a wrapped.json from \`agent-wrapped stats\``);
   await render(wrapped, resolve(values.out ?? `wrapped-${wrapped.year}.mp4`));
   process.exit(0);
@@ -139,7 +144,7 @@ async function render(wrapped: Wrapped, out: string) {
   // The \r progress line only makes sense in a terminal. Agents capture stderr.
   const tty = process.stderr.isTTY;
   let shown = -1;
-  await renderVideo(wrapped, format as "vertical" | "square", out, (progress) => {
+  await renderVideo(wrapped, { format: format as "vertical" | "square", cut: values.social ? "social" : "full", blurProjects: values["blur-projects"] ?? false }, out, (progress) => {
     const percent = Math.floor(progress * 100);
     if (tty && percent !== shown && percent % 5 === 0) {
       shown = percent;

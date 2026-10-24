@@ -126,7 +126,20 @@ export interface Wrapped {
     /** Up to 150 of them, redacted and clipped to 200 characters, for the agent to read. */
     samples: string[];
   };
+  /** Up to 200 short prompts spread over the year, redacted, for the skill's agent to pick `quotes` from. Not shown in the video. */
+  promptSamples: Quote[];
+  /** The user's own lines, picked from `promptSamples` by the skill's agent. The video shows up to 4 on their own card. */
+  quotes: { title: string; lines: Quote[] };
   /** Up to 3 rules that would have prevented the most corrections. The skill's agent writes these. */
   lessons: { rule: string; count: number }[];
   persona: { title: string; line: string };
+}
+
+/** Something the user typed, and when and to which agent. */
+export interface Quote {
+  text: string;
+  /** YYYY-MM-DD and HH:MM, local time. */
+  date: string;
+  time: string;
+  agent: AgentId;
 }

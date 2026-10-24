@@ -3,7 +3,7 @@ import { Orbit } from "../Shapes.tsx";
 import { MONO } from "../fonts.ts";
 import { WEEKDAYS, clock, day, hourLabel } from "../format.ts";
 import { mix, type Field } from "../theme.ts";
-import { Card, Clip, Rise, display, numerals, useLayout, useProgress, type CardProps } from "../ui.tsx";
+import { Card, Clip, Rise, display, numerals, useLayout, usePrivate, useProgress, type CardProps } from "../ui.tsx";
 
 function peak(values: number[]): number {
   return values.reduce((best, value, i) => (value > (values[best] ?? 0) ? i : best), 0);
@@ -64,7 +64,7 @@ function HourBar({ height, width, delay, color }: { height: number; width: numbe
 function LateNight({ moment, field }: { moment: Moment; field: Field }) {
   const { square } = useLayout();
   const { time, half } = clock(moment.time);
-  const what = [moment.project, moment.title].filter(Boolean).join(": ");
+  const what = usePrivate([moment.project, moment.title].filter(Boolean).join(": "));
   return (
     <Rise delay={44} style={{ borderTop: `6px solid ${field.ink}`, paddingTop: square ? 24 : 36 }}>
       <div style={{ display: "flex", alignItems: "baseline", gap: 20 }}>
@@ -72,7 +72,7 @@ function LateNight({ moment, field }: { moment: Moment; field: Field }) {
         <div style={{ fontSize: square ? 56 : 72, fontWeight: 800 }}>{half}</div>
       </div>
       <div style={{ fontSize: square ? 46 : 56, fontWeight: 700, marginTop: 8 }}>{day(moment.date)}, still prompting.</div>
-      {what ? <Clip style={{ fontFamily: MONO, fontSize: 36, fontWeight: 500, marginTop: 14, opacity: 0.75 }}>{what}</Clip> : null}
+      {what.text ? <Clip style={{ fontFamily: MONO, fontSize: 36, fontWeight: 500, marginTop: 14, opacity: 0.75, ...what.style }}>{what.text}</Clip> : null}
     </Rise>
   );
 }

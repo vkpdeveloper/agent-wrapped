@@ -24,6 +24,8 @@ const empty: Wrapped = {
   busiestDay: { date: "2026-01-01", sessions: 0, hours: 0 },
   streak: { days: 0, from: "2026-01-01", to: "2026-01-01" },
   corrections: { total: 0, rate: 0, phrases: [], samples: [] },
+  promptSamples: [],
+  quotes: { title: "", lines: [] },
   lessons: [],
   persona: { title: "", line: "" },
 };
@@ -35,9 +37,9 @@ export const Root = () => (
     fps={FPS}
     {...FORMATS.vertical}
     durationInFrames={1}
-    defaultProps={{ wrapped: empty, format: "vertical" } satisfies WrappedProps}
+    defaultProps={{ wrapped: empty, format: "vertical", cut: "full" } satisfies WrappedProps}
     calculateMetadata={({ props }) => ({
-      durationInFrames: totalFrames(planCards(props.wrapped)),
+      durationInFrames: totalFrames(planCards(props.wrapped, props.cut)),
       fps: FPS,
       ...FORMATS[props.format],
     })}

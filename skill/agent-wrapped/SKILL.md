@@ -55,9 +55,29 @@ on their agent. Group them by what the agent kept getting wrong and write up to
 
 Skip one-off complaints and anything that names a person, client or secret.
 Leave `lessons` empty if no pattern repeats. You may sharpen `persona.line`, but
-keep its number exactly as computed. Save the edited JSON.
+keep its number exactly as computed.
 
-## 3. Render
+## 3. Pick the quotes
+
+Read `promptSamples`: up to 200 short prompts the user typed, spread over the
+year. Get a feel for how they talk to agents (blunt, polite, all caps, typos,
+3am despair, tiny wins), then copy 3 or 4 that sound most like them into
+`quotes.lines`, keeping each one's `date`, `time` and `agent`:
+
+- Pick lines that are funny, oddly specific or very them. A stranger should
+  get the joke without context. Mix moods; skip boring task descriptions.
+- Keep their words, typos and casing. You may cut a quote down to its best
+  part, at most 120 characters, but never add words.
+- Skip anything with a secret, a `********`, a person's or client's name, or
+  anything they would not want posted. With `--blur-projects`, also skip
+  quotes that name a project.
+
+Write `quotes.title`: at most 6 words, in the user's own tone, introducing
+the quotes ("Things you said at 3am", "Your agent has receipts"). Leave
+`quotes.lines` empty if nothing is worth posting; the card is then left out.
+Save the edited JSON.
+
+## 4. Render
 
 ```sh
 <skill-dir>/wrapped.sh render "${TMPDIR:-/tmp}/wrapped.json" -o ~/Desktop/agent-wrapped-<year>.mp4
@@ -65,11 +85,17 @@ keep its number exactly as computed. Save the edited JSON.
 
 Use `~/Desktop` when it exists, otherwise the current directory, unless the user
 names a place. `--format square` (1080x1080) for the X or LinkedIn feed; the
-default is vertical (1080x1920) for Stories, Reels and TikTok.
+default is vertical (1080x1920) for Stories, Reels and TikTok. Add
+`--blur-projects` when the user wants project names and session titles hidden.
+Add `--social` for a 30 second first-person cut made to post: hours, top
+agent, latest night, times they said no, two quotes and the persona, with no
+projects, tools, commands or models. Offer it when they want to share.
+The video has a generated soundtrack timed to its cuts.
 
 ## Report
 
 Give the video path, the headline numbers (hours, sessions, the #1 agent), the
-persona, and the lessons. Offer to add the lessons to their CLAUDE.md or
-AGENTS.md. Remind them that the video shows project names and their top
-phrases, so they should watch it before posting.
+persona, the lessons and the quotes you picked. Offer to add the lessons to
+their CLAUDE.md or AGENTS.md. Remind them that the video shows project names
+(unless blurred), their top phrases and the quotes, so they should watch it
+before posting.

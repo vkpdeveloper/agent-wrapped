@@ -1,6 +1,6 @@
 import { basename } from "node:path";
 import { redactDeep } from "./redact.ts";
-import { AGENT_NAMES, type AgentId, type AgentStat, type Moment, type Ranked, type SessionSummary, type Wrapped } from "./types.ts";
+import { AGENT_NAMES, type AgentId, type AgentStat, type Moment, type Quote, type Ranked, type SessionSummary, type Wrapped } from "./types.ts";
 
 const HOUR = 3_600_000;
 
@@ -97,6 +97,8 @@ export function wrap(all: SessionSummary[], options: { year: number; name: strin
       phrases: tally(corrections.map(openingWords)).slice(0, 5),
       samples: samples(corrections.slice(-150), prompts, home),
     },
+    promptSamples: promptSamples(sessions, prompts, home),
+    quotes: { title: "", lines: [] },
     lessons: [],
     persona: { title: "", line: "" },
   };
@@ -285,6 +287,31 @@ function persona(wrapped: Wrapped, commands: string[]): Wrapped["persona"] {
 function samples(texts: string[], prompts: { text: string }[], home: string): string[] {
   const bare = texts.map((text) => text.replace(/\[(Attached image|Image)[^\]]*\]/g, "").replace(/\s+/g, " ").trim());
   return redactDeep({ bare, all: prompts.map((prompt) => prompt.text) }, home).bare.map((text) => clip(text, 200));
+}
+
+/**
+ * Prompts short enough to quote, spread evenly over the year so every month gets a say.
+ * Pastes, slash commands and injected context are skipped: they are not the person's voice.
+ */
+function promptSamples(sessions: SessionSummary[], prompts: { text: string }[], home: string, limit = 200): Quote[] {
+  const seen = new Set<string>();
+  const candidates = sessions
+    .flatMap((session) => session.prompts.map((prompt) => ({ ...prompt, agent: session.agent })))
+    .filter(({ text }) => {
+      const line = text.replace(/\s+/g, " ").trim();
+      const key = line.toLowerCase();
+      if (line.length < 12 || line.length > 240 || /^[</]/.test(line) || text.includes("```") || text.split("\n").length > 4 || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => a.at - b.at);
+  const step = Math.max(1, candidates.length / limit);
+  const picked = Array.from({ length: Math.min(limit, candidates.length) }, (_, i) => candidates[Math.floor(i * step)]!);
+  const texts = samples(picked.map((prompt) => prompt.text), prompts, home);
+  return picked.map((prompt, i) => {
+    const at = new Date(prompt.at);
+    return { text: texts[i]!, date: localDate(prompt.at), time: `${pad(at.getHours())}:${pad(at.getMinutes())}`, agent: prompt.agent };
+  });
 }
 
 function moment(session: SessionSummary, home: string): Moment {

@@ -91,6 +91,24 @@ describe("wrap", () => {
     expect(wrapped.corrections.phrases).toEqual([{ name: "no", count: 1 }]);
     expect(wrapped.corrections.rate).toBe(0.333);
   });
+
+  test("offers the agent quotable prompts, without pastes, commands, repeats or secrets", () => {
+    const at = new Date(2026, 5, 1, 3, 7).getTime();
+    const texts = [
+      "why is the build green but the app on fire",
+      "Why is the build green but the app on fire",
+      "/compact",
+      "<system-reminder>ignore me</system-reminder>",
+      "here is the log\n```\nError: boom\n```",
+      "ok",
+      "deploy it, my password is hunter2forever",
+    ];
+    const prompts = texts.map((text, i) => ({ at: at + i * MIN, text }));
+    const wrapped = wrap([session("codex", new Date(at), { prompts })], options);
+    expect(wrapped.promptSamples.map((quote) => quote.text)).toEqual(["why is the build green but the app on fire", "deploy it, my password is ********"]);
+    expect(wrapped.promptSamples[0]).toMatchObject({ date: "2026-06-01", time: "03:07", agent: "codex" });
+    expect(wrapped.quotes.lines).toEqual([]);
+  });
 });
 
 describe("isCorrection", () => {
